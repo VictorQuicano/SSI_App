@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:13
+    container_name: aca-py-postgres
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: "acapy_wallet,postgres_wallet"
+      POSTGRES_USER: acapy_user
+      POSTGRES_PASSWORD: acapy_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acapy_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  aca-py:
+    image: bcgovimages/aries-cloudagent:py3.12_1.2.0
+    container_name: aca-py-agent
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      - ./genesis.txn:/home/indy/genesis.txn
+    command: >
+      start
+      --endpoint http://localhost:3000
+      --label "Agent with Local Genesis"
+      --inbound-transport http 0.0.0.0 3000
+      --outbound-transport http
+      --admin 0.0.0.0 3001
+      --admin-insecure-mode
+      --genesis-file /home/indy/genesis.txn
+      --wallet-type askar
+      --wallet-name postgres_wallet
+      --wallet-key walletkey123
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"postgres:5432/postgres_wallet","max_connections":5}'
+      --wallet-storage-creds '{"account":"acapy_user","password":"acapy_password","admin_account":"acapy_user","admin_password":"acapy_password"}'
+      --auto-provision
+      --log-level INFO
+
+volumes:
+  postgres_data:
