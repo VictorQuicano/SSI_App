@@ -1,0 +1,63 @@
+{
+  "Evtol": [
+    {
+      "id": "8497794c-5bde-4cf5-ab0c-eb2e24d83f5a",
+      "did": "J7imaNEjrEcfoDczjVMDn4",
+      "verkey": "AL4qmkZ2GUSCppa7pw9BSTspqggcgfzXUWJ8mJE9d8jt",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRfaWQiOiJhM2NlYjAwNC1iZmI0LTQ2NzAtODY5ZC01ODQyNDhhMmI0N2YiLCJpYXQiOjE3NjIxNjI1ODN9.Ce1xIsCPF3v4y2mJMvpjONSf-G573eBpyA-cYGzzY88",
+      "wallet_data": {
+        "success": true,
+        "wallet_id": "a3ceb004-bfb4-4670-869d-584248a2b47f",
+        "wallet_name": "wallet_73bfc7cd"
+      },
+      "credentials": [],
+      "wallet_name": "wallet_73bfc7cd",
+      "timestamp": "2025-11-03T04:36:22.977681",
+      "model": "Standard",
+      "max_speed": 120,
+      "type": "eVTOL"
+    }
+  ],
+  "credentials": [
+    {
+      "credential_id": "cred_e4acd947",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:28:latest",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:User_Cred:1.0",
+        "name": "User_Cred",
+        "version": "1.0",
+        "attrNames": [
+          "can_ride",
+          "first_name",
+          "last_name"
+        ],
+        "seqNo": 28
+      },
+      "owner_did": null,
+      "timestamp": "2025-11-03T04:25:29.848010",
+      "type": "Credential"
+    },
+    {
+      "credential_id": "cred_54481f98",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:30:latest",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:Port_Credential:1.0",
+        "name": "Port_Credential",
+        "version": "1.0",
+        "attrNames": [
+          "n_parkings",
+          "name",
+          "n_airstrip",
+          "coord_lon",
+          "coord_lat"
+        ],
+        "seqNo": 30
+      },
+      "owner_did": null,
+      "timestamp": "2025-11-03T04:27:14.259945",
+      "type": "Credential"
+    }
+  ]
+}

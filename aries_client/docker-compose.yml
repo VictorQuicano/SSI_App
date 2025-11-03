@@ -3,7 +3,7 @@ services:
     image: postgres:13
     container_name: aca-py-postgres
     environment:
-      POSTGRES_MULTIPLE_DATABASES: "acapy_wallet,postgres_wallet"
+      POSTGRES_MULTIPLE_DATABASES: "acapy_wallet" # Solo una base de datos
       POSTGRES_USER: acapy_user
       POSTGRES_PASSWORD: acapy_password
     ports:
@@ -37,11 +37,15 @@ services:
       --admin 0.0.0.0 3001
       --admin-insecure-mode
       --genesis-file /home/indy/genesis.txn
+      --seed 000000000000000000000000Trustee1 
+      --multitenant
+      --multitenant-admin
+      --jwt-secret "a2af09aa66bbea6806fead4d8816debf04d4e8d63cba823e8e376b240da149a6391f35989a09190b2be91cc2eb7bb1e4abee1ca7e366ed63545947241222cc98"
       --wallet-type askar
       --wallet-name postgres_wallet
       --wallet-key walletkey123
       --wallet-storage-type postgres_storage
-      --wallet-storage-config '{"url":"postgres:5432/postgres_wallet","max_connections":5}'
+      --wallet-storage-config '{"url":"postgres:5432/acapy_wallet","max_connections":5}'
       --wallet-storage-creds '{"account":"acapy_user","password":"acapy_password","admin_account":"acapy_user","admin_password":"acapy_password"}'
       --auto-provision
       --log-level INFO
