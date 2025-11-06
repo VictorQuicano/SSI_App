@@ -50,6 +50,8 @@ services:
       --wallet-storage-config '{"url":"postgres:5432/acapy_wallet","max_connections":5}'
       --wallet-storage-creds '{"account":"acapy_user","password":"acapy_password","admin_account":"acapy_user","admin_password":"acapy_password"}'
       --auto-provision
+      --auto-accept-invites
+      --auto-accept-requests
       --log-level INFO
 
 volumes:
