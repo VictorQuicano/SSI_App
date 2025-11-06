@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  issuer:
+    image: bcgovimages/aries-cloudagent:py3.12_1.2.0
+    container_name: acapy-issuer
+    restart: unless-stopped
+    network_mode: "host"   # importante en Linux: permite que el contenedor acceda a localhost:9000 donde corre tu VON Network
+    volumes:
+      - ./genesis/genesis.txn:/home/indy/genesis.txn
+    environment:
+      - LOG_LEVEL=INFO
+    command: >
+      start
+      --label "Issuer Agent"
+      --endpoint http://localhost:8030
+      --inbound-transport http 0.0.0.0 8030
+      --outbound-transport http
+      --admin 0.0.0.0 8031
+      --admin-insecure-mode
+      --wallet-type askar
+      --wallet-name issuer_wallet
+      --wallet-key issuerkey123
+      --auto-provision
+      --auto-accept-invites
+      --auto-accept-requests
+      --auto-store-credential
+      --auto-ping-connection
+      --seed issuer00000000000000000000000001
+      --genesis-file /home/indy/genesis.txn
+
+  holder:
+    image: bcgovimages/aries-cloudagent:py3.12_1.2.0
+    container_name: acapy-holder
+    restart: unless-stopped
+    network_mode: "host"
+    volumes:
+      - ./genesis/genesis.txn:/home/indy/genesis.txn
+    environment:
+      - LOG_LEVEL=INFO
+    command: >
+      start
+      --label "Holder Agent"
+      --endpoint http://localhost:8040
+      --inbound-transport http 0.0.0.0 8040
+      --outbound-transport http
+      --admin 0.0.0.0 8041
+      --admin-insecure-mode
+      --wallet-type askar
+      --wallet-name holder_wallet
+      --wallet-key holderkey123
+      --auto-provision
+      --auto-accept-invites
+      --auto-accept-requests
+      --auto-store-credential
+      --auto-ping-connection
+      --seed holder00000000000000000000000001
+      --genesis-file /home/indy/genesis.txn

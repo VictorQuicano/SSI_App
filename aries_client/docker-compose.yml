@@ -24,17 +24,19 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "3000:3000"
-      - "3001:3001"
+      - "9030:9030"
+      - "9031:9031"
+      # - "3000:3000"
+      # - "3001:3001"
     volumes:
       - ./genesis.txn:/home/indy/genesis.txn
     command: >
       start
-      --endpoint http://localhost:3000
+      --endpoint http://localhost:9000
       --label "Agent with Local Genesis"
-      --inbound-transport http 0.0.0.0 3000
+      --inbound-transport http 0.0.0.0 9000
       --outbound-transport http
-      --admin 0.0.0.0 3001
+      --admin 0.0.0.0 9031
       --admin-insecure-mode
       --genesis-file /home/indy/genesis.txn
       --seed 000000000000000000000000Trustee1 

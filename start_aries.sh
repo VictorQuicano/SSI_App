@@ -56,16 +56,17 @@ cd "$COMPOSE_DIR" || { echo "❌ No se encontró el directorio $COMPOSE_DIR"; ex
 
 if [ "$DOWN" = true ]; then
   echo "🧹 Eliminando contenedores y volúmenes..."
-  docker-compose down -v
+  docker compose down -v
+  exit 2
 fi
 
 if [ "$REBUILD" = true ]; then
   echo "🔧 Reconstruyendo contenedores..."
-  docker-compose build --no-cache
+  docker compose build --no-cache
 fi
 
 echo "🚀 Iniciando contenedores..."
-docker-compose up -d
+docker compose up -d
 
 cd - >/dev/null
 

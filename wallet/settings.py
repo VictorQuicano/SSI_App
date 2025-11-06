@@ -143,7 +143,7 @@ INDY_API_URL = os.getenv("INDY_API_URL")
 
 #TODO: Configurar para Prod
 ACA_PY_CONFIG = {
-    # URL del Admin API (puerto 3001 en tu configuración)
+    # URL del Admin API (puerto 9031 en tu configuración)
     'admin_url': os.getenv("ARIES_API_URL"),
     
     # Como usas --admin-insecure-mode, no necesitas API key

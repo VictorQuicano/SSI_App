@@ -2,8 +2,8 @@ INDY_API_URL = "http://localhost:9000"
 
 #TODO: Configurar para Prod
 ACA_PY_CONFIG = {
-    # URL del Admin API (puerto 3001 en tu configuración)
-    'admin_url': "http://localhost:3001",
+    # URL del Admin API (puerto 9031 en tu configuración)
+    'admin_url': "http://localhost:9031",
     
     # Como usas --admin-insecure-mode, no necesitas API key
     'api_key': None,
@@ -26,7 +26,7 @@ ACA_PY_CONFIG = {
     },
     
     # Endpoint público del agente
-    'endpoint': "http://localhost:3000",
+    'endpoint': "http://localhost:9000",
     
     # Label del agente
     'label': 'Agent with Local Genesis',
