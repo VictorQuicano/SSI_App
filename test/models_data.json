@@ -81,6 +81,25 @@
       "owner_did": null,
       "timestamp": "2025-11-07T00:18:16.096925",
       "type": "Credential"
+    },
+    {
+      "credential_id": "cred_3e236b95",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:13:latest",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:User_Cred:1.0",
+        "name": "User_Cred",
+        "version": "1.0",
+        "attrNames": [
+          "last_name",
+          "can_ride",
+          "first_name"
+        ],
+        "seqNo": 13
+      },
+      "owner_did": null,
+      "timestamp": "2025-11-07T00:22:18.982676",
+      "type": "Credential"
     }
   ],
   "Evtol": [
