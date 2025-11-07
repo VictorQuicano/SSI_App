@@ -104,20 +104,41 @@
   ],
   "Evtol": [
     {
-      "id": "9b5fee73-9b08-447d-9338-b45cd47fa4bb",
-      "did": "5TN5Dd7bXFCgew9AJkvkkd",
-      "verkey": "3RpNh26WqA519uU32SbQCRuvqf8s6edYUpabtNZny8j2",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRfaWQiOiI4MmVhNmY2MS0wZmFhLTRkNWMtYTZkOC1lZDkxNjZlYmU0YmIiLCJpYXQiOjE3NjI0NjE4OTF9.NdPDARhAZoZ0-swfO3S7zyDhhte4LgI53Fd154TZ-Gc",
+      "id": "0b21cc2f-e3b4-4584-b226-9c875ebab862",
+      "did": "VzXCG6ExyADK4rnC45E7b3",
+      "verkey": "GoVBUzNMfxybDHpXmq9xMFWyxmBJd6TqKBaTnKHPpQke",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRfaWQiOiJmMjM4Mzk4YS02Y2MzLTQxNjMtODc4OC1jYTg4YjdmZGUzYjIiLCJpYXQiOjE3NjI1MTkyNDJ9.AuzMIWFOXhI-xsMb1arTTirWgBRX1Wndr38dx6KyHGs",
       "wallet_data": {
         "success": true,
-        "wallet_id": "82ea6f61-0faa-4d5c-a6d8-ed9166ebe4bb",
-        "wallet_name": "wallet_8f75da4c"
+        "wallet_id": "f238398a-6cc3-4163-8788-ca88b7fde3b2",
+        "wallet_name": "wallet_c28bf467"
       },
       "credentials": [],
-      "wallet_name": "wallet_8f75da4c",
-      "timestamp": "2025-11-06T15:44:51.546994",
-      "model": "Standard",
-      "max_speed": 120,
+      "wallet_name": "wallet_c28bf467",
+      "timestamp": "2025-11-07T07:40:41.772364",
+      "model": "Volocopter V2",
+      "max_speed": 150,
+      "id_puerto": "BER-001",
+      "status": "active",
+      "type": "eVTOL"
+    },
+    {
+      "id": "2d13a169-7495-4e18-b6f0-6c7628034cca",
+      "did": "S7X4ycew1bFad79KiffW1D",
+      "verkey": "EgrRHapHUFgeFcLZC2xfrE8VcYdno7LNUz9spYRgvZ3F",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRfaWQiOiIzMjc4MzlkZC0xMWZjLTQ3ZDEtYmY5Ni1jZDkzNmI1ZTMyNWMiLCJpYXQiOjE3NjI1MTkyNjJ9.05-nBz9alIZ_iHPU_Z3KqY4lE8cvaEV3Ghzie6xw_js",
+      "wallet_data": {
+        "success": true,
+        "wallet_id": "327839dd-11fc-47d1-bf96-cd936b5e325c",
+        "wallet_name": "wallet_78baff57"
+      },
+      "credentials": [],
+      "wallet_name": "wallet_78baff57",
+      "timestamp": "2025-11-07T07:41:01.765180",
+      "model": "Volocopter V2",
+      "max_speed": 150,
+      "id_puerto": "BER-001",
+      "status": "active",
       "type": "eVTOL"
     }
   ]
