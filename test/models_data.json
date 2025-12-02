@@ -260,25 +260,105 @@
       "owner_did": null,
       "timestamp": "2025-11-14T06:29:43.136439",
       "type": "Credential"
+    },
+    {
+      "credential_id": "cred_7709eb3e",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:9:default",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:User_Cred:1.0",
+        "name": "User_Cred",
+        "version": "1.0",
+        "attrNames": [
+          "can_ride",
+          "last_name",
+          "first_name"
+        ],
+        "seqNo": 9
+      },
+      "owner_did": null,
+      "timestamp": "2025-11-30T21:14:34.356274",
+      "type": "Credential"
+    },
+    {
+      "credential_id": "cred_a6890b0a",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:11:default",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:Port_Credential:4.0",
+        "name": "Port_Credential",
+        "version": "4.0",
+        "attrNames": [
+          "coord_lat",
+          "coord_lon",
+          "last_name",
+          "n_airstrip",
+          "n_parkings"
+        ],
+        "seqNo": 11
+      },
+      "owner_did": null,
+      "timestamp": "2025-11-30T21:14:58.501813",
+      "type": "Credential"
+    },
+    {
+      "credential_id": "cred_6a525b86",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:39:default",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:User_Cred:8.0",
+        "name": "User_Cred",
+        "version": "8.0",
+        "attrNames": [
+          "can_ride",
+          "first_name",
+          "last_name"
+        ],
+        "seqNo": 39
+      },
+      "owner_did": null,
+      "timestamp": "2025-12-02T07:17:32.155187",
+      "type": "Credential"
+    },
+    {
+      "credential_id": "cred_1c5183ad",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:41:default",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:Port_Credential:8.0",
+        "name": "Port_Credential",
+        "version": "8.0",
+        "attrNames": [
+          "coord_lat",
+          "last_name",
+          "n_airstrip",
+          "n_parkings",
+          "coord_lon"
+        ],
+        "seqNo": 41
+      },
+      "owner_did": null,
+      "timestamp": "2025-12-02T07:17:48.194370",
+      "type": "Credential"
     }
   ],
   "Evtol": [
     {
-      "id": "189eec8e-3b0b-4841-a3fc-cde1b1116757",
-      "did": "TDXMWsZbgWL2LSD3p1zJr2",
-      "verkey": "FHjjwQLXXDbWqpYPYiRXgCrHukwQrJWZNFi4kRuanSEZ",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRfaWQiOiJmMzdkOTYwOC0yMWFkLTRiNjUtYTE3ZC0xNTc0OTA4MzBmMjAiLCJpYXQiOjE3NjMwNjg2NTd9.ZfKM4ICS8ogqCgW2cTpJ8EbBD6F7Lgs5cvCIXG-w-1M",
+      "id": "VertiPort_0001",
+      "did": "39zyrur6sE1m6PdXzvHfwi",
+      "verkey": "2B8VAwx1ifLnARZV8p8eGLvUWt2SouebPhcCQzUstV16",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRfaWQiOiJhOGY3MGRiMi0zNzFiLTQyODgtYjgxYy01NjA3ZjUyOGI0MDEiLCJpYXQiOjE3NjQ2ODkxODh9.aFn4-PFCSmgkGzGvecHvdpQO2QfDCUr43gXx8XFedN0",
       "wallet_data": {
         "success": true,
-        "wallet_id": "f37d9608-21ad-4b65-a17d-157490830f20",
-        "wallet_name": "wallet_e3612bc1"
+        "wallet_id": "a8f70db2-371b-4288-b81c-5607f528b401",
+        "wallet_name": "wallet_29b570e9"
       },
       "credentials": [],
-      "wallet_name": "wallet_e3612bc1",
-      "timestamp": "2025-11-13T16:17:36.672999",
-      "model": "Volocopter V2",
-      "max_speed": 150,
-      "id_puerto": "BER-001",
+      "wallet_name": "wallet_29b570e9",
+      "timestamp": "2025-12-02T10:26:27.654701",
+      "model": "Standard",
+      "max_speed": 120,
+      "id_puerto": "default",
       "status": "active",
       "type": "eVTOL"
     }
