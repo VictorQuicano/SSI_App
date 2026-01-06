@@ -385,17 +385,31 @@
   "Evtol": [
     {
       "id": "VertiPort_0001",
-      "did": "GakSzmQhENS1Dqwy3MUyUg",
-      "verkey": "9VaHsdGwVSmzytCWUm3xsGUzWSavAgAV8hwWz4pTq9Jw",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRfaWQiOiI1ZGYwOWU1ZS00ZmY5LTQwYjEtYmNjOC02ZjljODQ5NTQwNGQiLCJpYXQiOjE3Njc1NTA2NzN9._223b1nqIQKPKRnUjqNcK0PvlDKzgSKQotq5h8-lFF4",
+      "did": "3Hde2S7D1U3XdiY2QEKdPJ",
+      "verkey": "2FHkTteRSEkZ8yZpogZT4RSsyQSuej5J8gvgcSxEbFB3",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRfaWQiOiIwMjliODIwZS03NTA0LTQwMjEtOTk3My02MDRiYzY5NzhmNzQiLCJpYXQiOjE3Njc2OTQ1MzZ9.ahrm-a9TrEf6U3BvlMmPb_y75x-X30bE7JoyUdWtjbE",
       "wallet_data": {
         "success": true,
-        "wallet_id": "5df09e5e-4ff9-40b1-bcc8-6f9c8495404d",
-        "wallet_name": "wallet_3b13e9d3"
+        "wallet_id": "029b820e-7504-4021-9973-604bc6978f74",
+        "wallet_name": "wallet_1c86d6ce"
       },
-      "credentials": [],
-      "wallet_name": "wallet_3b13e9d3",
-      "timestamp": "2026-01-04T13:17:53.387747",
+      "credentials": [
+        {
+          "issuer_cred_ex_id": "3a094877-9116-43af-875d-808fcafde5ec",
+          "holder_cred_ex_id": "bacd5a5f-83d6-4191-aa84-604ffd82fdef",
+          "wallet_credential_id": "b4635012-9d4c-49ef-b798-aa2731a0862f",
+          "schema_id": "V4SGRU86Z58d6TV7PBUe6f:2:Evtol_Crede:11.0",
+          "cred_def_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:7:default",
+          "attrs": {
+            "status": "active",
+            "id_puerto": "default",
+            "updates": "0"
+          },
+          "timestamp": "2026-01-06T05:15:40.555102"
+        }
+      ],
+      "wallet_name": "wallet_1c86d6ce",
+      "timestamp": "2026-01-06T05:15:40.555123",
       "model": "Standard",
       "max_speed": 120,
       "id_puerto": "default",
