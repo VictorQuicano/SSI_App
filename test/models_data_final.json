@@ -243,6 +243,67 @@
       "owner_did": null,
       "timestamp": "2026-01-06T05:15:26.446168",
       "type": "Credential"
+    },
+    {
+      "credential_id": "cred_926ebf55",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:7:default",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:Evtol_Crede:11.0",
+        "name": "Evtol_Crede",
+        "version": "11.0",
+        "attrNames": [
+          "status",
+          "id_puerto",
+          "updates"
+        ],
+        "seqNo": 7
+      },
+      "owner_did": null,
+      "timestamp": "2026-01-06T07:46:39.674231",
+      "type": "Credential"
+    },
+    {
+      "credential_id": "cred_79ea9b30",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:9:default",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:User_Cred:11.0",
+        "name": "User_Cred",
+        "version": "11.0",
+        "attrNames": [
+          "last_name",
+          "first_name",
+          "can_ride"
+        ],
+        "seqNo": 9
+      },
+      "owner_did": null,
+      "timestamp": "2026-01-06T07:46:46.998205",
+      "type": "Credential"
+    },
+    {
+      "credential_id": "cred_111923c4",
+      "definition_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:11:default",
+      "info": {
+        "ver": "1.0",
+        "id": "V4SGRU86Z58d6TV7PBUe6f:2:Port_Credential:11.0",
+        "name": "Port_Credential",
+        "version": "11.0",
+        "attrNames": [
+          "last_name",
+          "n_airstrip",
+          "n_parkings",
+          "coord_lon",
+          "n_free_airstrip",
+          "n_free_parkings",
+          "coord_lat"
+        ],
+        "seqNo": 11
+      },
+      "owner_did": null,
+      "timestamp": "2026-01-06T07:46:56.467982",
+      "type": "Credential"
     }
   ]
 }
