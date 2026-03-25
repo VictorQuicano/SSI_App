@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  issuer-agent:
+    image: bcgovimages/aries-cloudagent:py3.12_1.2.0
+    container_name: issuer-agent
+    ports:
+      - "9041:9041"   # Admin API
+      - "9040:9040"   # DIDComm inbound
+    volumes:
+      - ./genesis.txn:/home/indy/genesis.txn
+    command: >
+      start
+      --label "Issuer Agent"
+      --endpoint http://localhost:9040
+      --inbound-transport http 0.0.0.0 9040
+      --outbound-transport http
+      --admin 0.0.0.0 9041
+      --admin-insecure-mode
+      --genesis-file /home/indy/genesis.txn
+      --seed 000000000000000000000000Trustee1
+      --wallet-type askar
+      --wallet-name issuer_wallet
+      --wallet-key issuer_wallet_key
+      --auto-provision
+      --auto-accept-invites
+      --auto-accept-requests
+      --log-level INFO
