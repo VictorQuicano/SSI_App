@@ -11,17 +11,26 @@ class ACApyClient:
             'Accept': 'application/json',
         }
     
+    def _make_request(self, method: str, path: str, payload: dict = None) -> dict:
+        url = f"{self.admin_url}{path}"
+        method = method.upper()                                                   
+   
+        if method == 'GET':                                                       
+            response = requests.get(url, headers=self.headers, timeout=30)
+        elif method == 'POST':                                                    
+            response = requests.post(url, json=payload or {}, headers=self.headers, timeout=30)                                             
+        elif method == 'DELETE':
+            response = requests.delete(url, headers=self.headers, timeout=30)
+        else:                                                                     
+            raise ValueError(f"Unsupported HTTP method: {method}")
+                                                                                
+        response.raise_for_status()
+        return response.json()
+
     def create_wallet(self, wallet_name, wallet_key):
         """Crear un nuevo wallet"""
-        url = f"{self.admin_url}/wallet/did/create"
-        payload = {
-            "method": "sov",
-            "options": {
-                "key_type": "ed25519"
-            }
-        }
-        response = requests.post(url, json=payload, headers=self.headers)
-        return response.json()
+        payload = {"method": "sov", "options": {"key_type": "ed25519"}}
+        return self._make_request('POST', '/wallet/did/create', payload)
     
     def create_invitation(self, alias=None):
         """Crear invitación de conexión"""
