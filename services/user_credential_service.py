@@ -1,21 +1,21 @@
-# services/dni_service.py
 import time
 from .credential_service import CredentialService
 from .wallet_service import WalletService
 from aca_py.client import ACApyClient
 from auth_app.models import CredentialIssuance, Connection, Wallet
+from django.conf import settings
 
 
 POLL_INTERVAL = 2
 POLL_TIMEOUT  = 60
 
 
-class DNIService:
+class UserCredentialService:
 
     def __init__(self):
         self.credential_service = CredentialService()
 
-    def issue_dni_to_user(self, user, user_data: dict) -> CredentialIssuance:
+    def issue_credential_to_user(self, user, user_data: dict) -> CredentialIssuance:
         wallet = self._get_user_wallet(user)
         connection = self._establish_connection(wallet)
 
@@ -23,7 +23,6 @@ class DNIService:
             connection.connection_id, user_data
         )
 
-        # Bug 2 corregido: wallet= en lugar de user=
         record = CredentialIssuance.objects.create(
             wallet=wallet,
             connection=connection,
@@ -41,24 +40,16 @@ class DNIService:
         return wallets.first()
 
     def _establish_connection(self, holder_wallet: Wallet) -> Connection:
-        """
-        Flujo completo issuer → holder:
-        1. Issuer crea invitación
-        2. Holder la recibe
-        3. Se espera que la conexión esté activa
-        """
         existing = Connection.objects.filter(
             wallet=holder_wallet, state='complete'
         ).first()
         if existing:
             return existing
 
-        from django.conf import settings
         issuer_client = ACApyClient(settings.ACA_PY_AGENTS['issuer'])
         inv_data = issuer_client.create_invitation(alias=f"holder-{holder_wallet.wallet_id}")
         issuer_conn_id = inv_data['connection_id']
 
-        # Bug 3 corregido: ya no llama create_connection_for_user (inexistente)
         holder_client = ACApyClient(holder_wallet.agent_admin_url)
         holder_client.receive_invitation(inv_data['invitation'])
 

@@ -3,7 +3,7 @@
 #from django.http import JsonResponse
 #from django.views.decorators.csrf import csrf_exempt
 #import json
-#from services.dni_service import DNIService
+#from services.user_credential_service import UserCredentialService
 #from ..models import CredentialIssuance, User
 #
 #@login_required
@@ -22,8 +22,8 @@
 #                        status=400
 #                    )
 #            
-#            dni_service = DNIService()
-#            credential_record = dni_service.issue_dni_to_user(request.user, data)
+#            svc = UserCredentialService()
+#            credential_record = svc.issue_credential_to_user(request.user, data)
 #            
 #            return JsonResponse({
 #                'status': 'success',
@@ -41,8 +41,8 @@
 #def get_my_credentials(request):
 #    """Obtener credenciales del usuario autenticado"""
 #    user = User.objects.get(id=request.user_id)
-#    dni_service = DNIService()
-#    credentials = dni_service.get_user_credentials(user)
+#    svc = UserCredentialService()
+#    credentials = svc.get_user_credentials(user)
 #    
 #    data = [{
 #        'id': cred.id,

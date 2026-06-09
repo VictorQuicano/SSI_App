@@ -2,7 +2,7 @@
 """
 Script que:
 - Crea conexión Issuer -> Holder
-- Crea schema y cred def por Issuer (eVTOL_Credential)
+- Crea schema y cred def por Issuer (evtol_credential)
 - Emite una credencial al Holder y espera que sea almacenada
 """
 import requests, time, json, sys
@@ -85,35 +85,46 @@ def main():
     print("Conexión activa ✅")
 
     # Registrar schema y cred def (Issuer)
-    print("\n4) Registrar schema (eVTOL_Credential)")
-    schema_payload = {
-        "schema_name": "eVTOL_Credential",
-        "schema_version": "1.0",
-        "attributes": ["id_puerto", "state", "version", "name"]
-    }
-    sc, schema_resp = post(f"{ISSUER_ADMIN}/schemas", payload=schema_payload)
-    if sc not in (200,201):
-        print("Error creando schema:", sc, schema_resp)
-        sys.exit(1)
-    pretty(schema_resp)
-    # sacar schema_id robusto
+    print("\n4) Registrar schema (evtol_credential)")
     schema_id = None
-    if isinstance(schema_resp, dict):
-        schema_id = schema_resp.get("schema_id") or schema_resp.get("id") or (schema_resp.get("sent") and schema_resp["sent"].get("schema_id"))
+    sc, existing = get(f"{ISSUER_ADMIN}/schemas/created?schema_name=evtol_credential&schema_version=3.0")
+    if isinstance(existing, dict) and existing.get("schema_ids"):
+        schema_id = existing["schema_ids"][0]
+        print(f"Schema ya existe: {schema_id}")
+    else:
+        schema_payload = {
+            "schema_name": "evtol_credential",
+            "schema_version": "3.0",
+            "attributes": ["id_puerto", "state", "version", "name", "can_fly"]
+        }
+        sc, schema_resp = post(f"{ISSUER_ADMIN}/schemas", payload=schema_payload)
+        if sc not in (200, 201):
+            print("Error creando schema:", sc, schema_resp)
+            sys.exit(1)
+        pretty(schema_resp)
+        schema_id = (schema_resp.get("schema_id") or schema_resp.get("id") or
+                     (schema_resp.get("sent") and schema_resp["sent"].get("schema_id")))
     print("schema_id =", schema_id)
 
     print("\n5) Crear credential definition")
-    creddef_payload = {
-        "schema_id": schema_id,
-        "support_revocation": False,
-        "tag": "evtol_tag"
-    }
-    sc, creddef_resp = post(f"{ISSUER_ADMIN}/credential-definitions", payload=creddef_payload)
-    if sc not in (200,201):
-        print("Error creando cred def:", sc, creddef_resp)
-        sys.exit(1)
-    pretty(creddef_resp)
-    cred_def_id = creddef_resp.get("credential_definition_id") or (creddef_resp.get("sent") and creddef_resp["sent"].get("credential_definition_id"))
+    cred_def_id = None
+    sc, existing_cd = get(f"{ISSUER_ADMIN}/credential-definitions/created?schema_id={schema_id}")
+    if isinstance(existing_cd, dict) and existing_cd.get("credential_definition_ids"):
+        cred_def_id = existing_cd["credential_definition_ids"][0]
+        print(f"Cred def ya existe: {cred_def_id}")
+    else:
+        creddef_payload = {
+            "schema_id": schema_id,
+            "support_revocation": False,
+            "tag": "default"
+        }
+        sc, creddef_resp = post(f"{ISSUER_ADMIN}/credential-definitions", payload=creddef_payload)
+        if sc not in (200, 201):
+            print("Error creando cred def:", sc, creddef_resp)
+            sys.exit(1)
+        pretty(creddef_resp)
+        cred_def_id = (creddef_resp.get("credential_definition_id") or
+                       (creddef_resp.get("sent") and creddef_resp["sent"].get("credential_definition_id")))
     print("cred_def_id =", cred_def_id)
 
     # Obtener connection id actual del issuer (buscar la conexión creada)
@@ -134,7 +145,8 @@ def main():
         {"name":"id_puerto","value":"puerto_42"},
         {"name":"state","value":"ACTIVE"},
         {"name":"version","value":"v1"},
-        {"name":"name","value":"EVTOL-Alpha"}
+        {"name":"name","value":"EVTOL-Alpha"},
+        {"name":"can_fly","value":"true"}
     ]
     offer_payload = {
         "connection_id": conn_id,

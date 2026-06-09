@@ -36,7 +36,7 @@ services:
       --admin 0.0.0.0 8041 --admin-insecure-mode
       --wallet-type askar --wallet-name user1_wallet --wallet-key user1key123                                                                                                         
       --auto-provision --auto-accept-invites --auto-accept-requests
-      --auto-store-credential --auto-ping-connection                                                                                                                                  
+      --auto-respond-credential-offer --auto-store-credential --auto-ping-connection
       --genesis-file /home/indy/genesis.txn
   
   evtol1:
@@ -64,10 +64,10 @@ services:
       - ./genesis/genesis.txn:/home/indy/genesis.txn
     command: >
       start --label "Vertiport 1"
-      --endpoint http://localhost:8050
-      --inbound-transport http 0.0.0.0 8050
+      --endpoint http://localhost:8060
+      --inbound-transport http 0.0.0.0 8060
       --outbound-transport http
-      --admin 0.0.0.0 8051 --admin-insecure-mode
+      --admin 0.0.0.0 8061 --admin-insecure-mode
       --wallet-type askar --wallet-name vertiport1_wallet --wallet-key holderkey123
       --auto-provision --auto-accept-invites --auto-accept-requests
       --auto-store-credential --auto-ping-connection
@@ -81,10 +81,10 @@ services:
       - ./genesis/genesis.txn:/home/indy/genesis.txn
     command: >
       start --label "Vertiport 2"
-      --endpoint http://localhost:8050
-      --inbound-transport http 0.0.0.0 8050
+      --endpoint http://localhost:8070
+      --inbound-transport http 0.0.0.0 8070
       --outbound-transport http
-      --admin 0.0.0.0 8051 --admin-insecure-mode
+      --admin 0.0.0.0 8071 --admin-insecure-mode
       --wallet-type askar --wallet-name vertiport2_wallet --wallet-key holderkey123
       --auto-provision --auto-accept-invites --auto-accept-requests
       --auto-store-credential --auto-ping-connection

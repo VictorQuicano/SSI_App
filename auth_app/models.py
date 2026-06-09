@@ -9,8 +9,8 @@ from django.contrib.contenttypes.fields import GenericRelation
 
 class Wallet(models.Model):
     wallet_id = models.CharField(max_length=255)
-    wallet_key = models.CharField(max_length=255)
     public_did = models.CharField(max_length=255, blank=True, null=True)
+    agent_admin_url = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
     # --- Relación polimórfica ---

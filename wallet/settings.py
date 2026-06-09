@@ -142,39 +142,47 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 INDY_API_URL = os.getenv("INDY_API_URL")
 
 #TODO: Configurar para Prod
-ACA_PY_CONFIG = {
-    # URL del Admin API (puerto 9031 en tu configuración)
-    'admin_url': os.getenv("ARIES_API_URL"),
+# ACA_PY_CONFIG = {
+#     # URL del Admin API (puerto 9031 en tu configuración)
+#     'admin_url': os.getenv("ARIES_API_URL"),
     
-    # Como usas --admin-insecure-mode, no necesitas API key
-    'api_key': None,
+#     # Como usas --admin-insecure-mode, no necesitas API key
+#     'api_key': None,
     
-    # Configuración del wallet
-    'wallet_name': os.getenv("ARIES_WALLET_NAME"),
-    'wallet_key': os.getenv("ARIES_WALLET_KEY"),
+#     # Configuración del wallet
+#     'wallet_name': os.getenv("ARIES_WALLET_NAME"),
+#     'wallet_key': os.getenv("ARIES_WALLET_KEY"),
     
-    # Configuración de base de datos
-    'wallet_storage_type': 'postgres_storage',
-    'wallet_storage_config': {
-        'url': 'postgres:5432/postgres_wallet',
-        'max_connections': 5
-    },
-    'wallet_storage_creds': {
-        'account': 'acapy_user',
-        'password': 'acapy_password',
-        'admin_account': 'acapy_user', 
-        'admin_password': 'acapy_password'
-    },
+#     # Configuración de base de datos
+#     'wallet_storage_type': 'postgres_storage',
+#     'wallet_storage_config': {
+#         'url': 'postgres:5432/postgres_wallet',
+#         'max_connections': 5
+#     },
+#     'wallet_storage_creds': {
+#         'account': 'acapy_user',
+#         'password': 'acapy_password',
+#         'admin_account': 'acapy_user', 
+#         'admin_password': 'acapy_password'
+#     },
     
-    # Endpoint público del agente
-    'endpoint': os.getenv("ARIES_AGENT_ENDPOINT"),
+#     # Endpoint público del agente
+#     'endpoint': os.getenv("ARIES_AGENT_ENDPOINT"),
     
-    # Label del agente
-    'label': 'Agent with Local Genesis',
+#     # Label del agente
+#     'label': 'Agent with Local Genesis',
     
-    # Configuración adicional
-    'genesis_file': '/home/indy/genesis.txn',
-    'wallet_type': 'askar',
-    'auto_provision': True,
-    'log_level': 'INFO'
-}
+#     # Configuración adicional
+#     'genesis_file': '/home/indy/genesis.txn',
+#     'wallet_type': 'askar',
+#     'auto_provision': True,
+#     'log_level': 'INFO'
+# }
+
+ACA_PY_AGENTS = {
+      'issuer':     os.getenv('ISSUER_ADMIN_URL',     'http://localhost:8031'),
+      'user_1':     os.getenv('USER_1_ADMIN_URL',     'http://localhost:8041'),
+      'evtol_1':    os.getenv('EVTOL_1_ADMIN_URL',    'http://localhost:8051'), 
+      'vertiport_1':os.getenv('VERTIPORT_1_ADMIN_URL','http://localhost:8061'), 
+      'vertiport_2':os.getenv('VERTIPORT_2_ADMIN_URL','http://localhost:8071'), 
+  }
