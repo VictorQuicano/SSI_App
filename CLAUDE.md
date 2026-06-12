@@ -16,22 +16,29 @@ python manage.py makemigrations   # Generate new migrations after model changes
 python manage.py createsuperuser  # Create admin user for /admin/
 ```
 
-### Docker Agent Setup
+### Docker Agent Setup (Architecture A — credential_test/)
 ```bash
-# Start individual agents
-cd issuer && docker-compose up -d
-cd holder1 && docker-compose up -d
+# Start VON Network first (in SSI_Project/)
+cd ~/Documentos/TI3/SSI_Project && ./manage start --wait
 
-# Orchestrated startup with genesis file download
-bash start_aries.sh --url http://localhost:9000/genesis --rebuild
+# Register issuer DID on ledger (only needed after ./manage down)
+curl -X POST http://localhost:9000/register \
+  -H "Content-Type: application/json" \
+  -d '{"did":"Utwqp5cpEATQpGZL5WSQZJ","verkey":"GCqSzwWVsRumDY67zkBACHs92zQJpg71WKmFEHnTreUQ","alias":"issuer","role":"TRUST_ANCHOR"}'
+
+# Start agents
+cd credential_test
+docker compose -f docker-compose-agents.yml up issuer user1
 ```
 
 ### Integration Testing
 ```bash
 cd credential_test
-bash start_test.sh                # Full automated test setup with VON Network
-python connect_and_issue.py       # Manual issuer→holder credential flow test
+python connect_and_issue.py       # issuer→holder credential flow (evtol_credential:3.0)
 ```
+
+For full deployment steps see `docs/08_como_ejecutar_prueba_ssi.md`.
+For the complete system flow explanation see `docs/09_flujo_completo_arranque_hasta_credencial.md`.
 
 ## Architecture
 
@@ -40,7 +47,7 @@ python connect_and_issue.py       # Manual issuer→holder credential flow test
 Django REST API (port 8000)
   └── Service Layer (services/)
         └── ACApyClient (aca_py/client.py) — HTTP to ACA-Py Admin API
-              └── ACA-Py Agents (issuer port 9041, holder port 9031)
+              └── ACA-Py Agents (issuer admin: 8031, user1 admin: 8041)
                     └── Indy Ledger (VON Network port 9000)
 ```
 
@@ -49,21 +56,24 @@ Django REST API (port 8000)
 **`auth_app/`** — Django app with all models and views:
 - `models.py` — `User`, `Wallet` (polymorphic owner via GenericForeignKey), `Connection` (DIDComm state machine), `CredentialIssuance` (credential lifecycle), `EVTOL`
 - `views/user_views.py` — `POST /api/user/` creates user + wallet
-- `views/credential_views.py` — credential endpoints (currently commented out)
+- `views/credential_views.py` — credential endpoints (currently commented out pending testing)
 
 **`services/`** — Business logic separated from Django views:
 - `wallet_service.py` — `WalletService`: creates wallets, generates keys, creates invitations
 - `credential_service.py` — `CredentialService`: schema creation, credential definitions, issuance, retrieval
-- `dni_service.py` — `DNIService`: high-level orchestration for DNI credential flow
+- `user_credential_service.py` — `UserCredentialService`: high-level orchestration for user credential flow (wallet → connection → issuance → DB record)
 
 **`aca_py/client.py`** — `ACApyClient`: thin HTTP wrapper around ACA-Py Admin API endpoints
 
-**`wallet/settings.py`** — Django config + ACA-Py agent configuration dict (`ACA_PY_CONFIG`). Key env vars: `INDY_API_URL`, `ARIES_API_URL`, `ARIES_WALLET_NAME`, `ARIES_WALLET_KEY`, `ARIES_AGENT_ENDPOINT`
+**`wallet/settings.py`** — Django config + `ACA_PY_AGENTS` dict mapping agent keys to admin URLs
 
-### Agent Containers
-- **`issuer/`** — Issuer agent (ports 9040/9041), wallet `issuer_wallet`
-- **`holder1/`** — Holder agent (ports 9030/9031)
-- **`aries_client/`** — Multi-tenant ACA-Py setup with PostgreSQL backend
+### Agent Containers (credential_test/)
+- **`acapy-issuer`** — Issuer agent (inbound: 8030, admin: 8031), seed: `issuer00000000000000000000000001`
+- **`acapy-user1`** — User holder agent (inbound: 8040, admin: 8041)
+- **`acapy-evtol1`** — eVTOL holder agent (inbound: 8050, admin: 8051)
+- **`acapy-vertiport1`** — Vertiport holder agent (inbound: 8060, admin: 8061)
+- **`acapy-vertiport2`** — Vertiport holder agent (inbound: 8070, admin: 8071)
+- **`aries_client/`** — Legacy multi-tenant ACA-Py setup (not used in Architecture A)
 
 ### Wallet Polymorphism
 `Wallet` uses Django's `GenericForeignKey` so any model (User, EVTOL, etc.) can own a wallet. Always use `ContentType` framework when querying wallet ownership.
@@ -83,8 +93,13 @@ Copy `.env.example` to `.env` and configure:
 BLOCKCHAIN_API_URL=http://localhost:9000/
 ```
 
-Additional ACA-Py vars (`ARIES_API_URL`, `ARIES_WALLET_NAME`, `ARIES_WALLET_KEY`, `ARIES_AGENT_ENDPOINT`) must also be set — see `wallet/settings.py` for the full list.
+Agent admin URLs are set via environment variables or default to localhost. See `wallet/settings.py` → `ACA_PY_AGENTS` for the full mapping.
 
 ## Testing Infrastructure
 
-`credential_test/` contains integration test scripts and Jupyter notebooks (`test_credentials.ipynb`, `multitenant_test.ipynb`) for interactive testing of credential issuance flows against a running VON Network + ACA-Py setup.
+`credential_test/` contains:
+- `connect_and_issue.py` — standalone issuer→holder flow (evtol_credential:3.0, Architecture A)
+- `docker-compose-agents.yml` — defines all 5 ACA-Py agent containers
+- Jupyter notebooks (`test_credentials.ipynb`, `multitenant_test.ipynb`) — legacy multitenant approach, kept for reference
+
+Note: `connect_and_issue.py` currently uses RFC 0036 (Issue Credential 1.0) and RFC 0160 (Connection Protocol) — both deprecated. Migration to RFC 0453 / RFC 0023 is pending.

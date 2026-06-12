@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   issuer:
     image: bcgovimages/aries-cloudagent:py3.12_1.2.0
