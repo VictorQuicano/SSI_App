@@ -30,13 +30,35 @@ class User(AbstractUser):
         return self.username
 
 class EVTOL(models.Model):
+    STATES = [('ACTIVE', 'Active'), ('INACTIVE', 'Inactive'), ('MAINTENANCE', 'Maintenance')]
+
+    name = models.CharField(max_length=100, default='')
     model = models.CharField(max_length=100)
     manufacturer = models.CharField(max_length=100)
     serial_number = models.CharField(max_length=100, unique=True)
+    state = models.CharField(max_length=20, choices=STATES, default='ACTIVE')
+    version = models.CharField(max_length=20, default='v1')
+    can_fly = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    wallets = GenericRelation(Wallet, content_type_field='content_type', object_id_field='object_id')
 
     def __str__(self):
-        return f"EVTOL {self.model} - {self.serial_number}"
+        return f"EVTOL {self.name} ({self.serial_number})"
+
+
+class Vertiport(models.Model):
+    STATES = [('ACTIVE', 'Active'), ('INACTIVE', 'Inactive'), ('MAINTENANCE', 'Maintenance')]
+
+    vertiport_id = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=100)
+    location = models.CharField(max_length=200)
+    capacity = models.PositiveIntegerField()
+    state = models.CharField(max_length=20, choices=STATES, default='ACTIVE')
+    created_at = models.DateTimeField(auto_now_add=True)
+    wallets = GenericRelation(Wallet, content_type_field='content_type', object_id_field='object_id')
+
+    def __str__(self):
+        return f"Vertiport {self.name} ({self.vertiport_id})"
 
 class Connection(models.Model):
     CONNECTION_STATES = [
