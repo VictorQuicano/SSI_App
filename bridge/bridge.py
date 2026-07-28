@@ -37,6 +37,8 @@ ADDRESSES_FILE = BESU_DIR / "deployed_addresses.json"
 BESU_RPC      = "http://localhost:8545"
 PRIVATE_KEY   = "0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63"
 
+DJANGO_API  = "http://localhost:8000"
+
 AGENTS = {
     "user1":      "http://localhost:8041",
     "evtol1":     "http://localhost:8051",
@@ -56,6 +58,28 @@ def banner(msg: str):
 def attrs_to_bytes(attrs: dict) -> bytes:
     """Serializa atributos de credencial como JSON bytes para pasarlos on-chain."""
     return json.dumps(attrs, sort_keys=True).encode("utf-8")
+
+
+# ── Fase 0: Atestaciones Trusted Verifier ────────────────────────────────────
+
+def get_attestation(endpoint: str, payload: dict) -> bytes:
+    """Pide a Django que firme una atestación y devuelve los 65 bytes de firma."""
+    resp = requests.post(f"{DJANGO_API}{endpoint}", json=payload, timeout=10)
+    resp.raise_for_status()
+    sig_hex = resp.json()["signature"]
+    return bytes.fromhex(sig_hex.removeprefix("0x"))
+
+
+def get_user_attestation(rider: str, can_ride: bool) -> bytes:
+    return get_attestation("/api/attest/user/", {"rider": rider, "can_ride": can_ride})
+
+
+def get_vertiport_attestation(vertiport_id: str) -> bytes:
+    return get_attestation("/api/attest/vertiport/", {"vertiport_id": vertiport_id})
+
+
+def get_evtol_attestation(evtol_id: int) -> bytes:
+    return get_attestation("/api/attest/evtol/", {"evtol_id": evtol_id})
 
 
 # ── Fase 1: Leer credenciales de ACA-Py ──────────────────────────────────────
@@ -168,9 +192,11 @@ def register_entities(w3: Web3, account, contracts: dict, creds: dict):
     rider_addr = account.address  # en el demo, el admin es también el rider
     can_ride   = creds["user"].get("can_ride", "false").lower() == "true"
 
-    # 2a. Autorizar usuario
-    print(f"  [2a] setRiderPermission({rider_addr[:10]}…, {can_ride})")
-    send_tx(w3, account, uv.functions.setRiderPermission(rider_addr, can_ride))
+    # 2a. Autorizar usuario — atestación firmada por Django (Trusted Verifier)
+    print(f"  [2a] Solicitando atestación de usuario a Django...")
+    user_sig = get_user_attestation(rider_addr, can_ride)
+    print(f"  [2a] setRiderPermission({rider_addr[:10]}…, {can_ride}) + atestación")
+    send_tx(w3, account, uv.functions.setRiderPermission(rider_addr, can_ride, user_sig))
     stored = uv.functions.canUserRide(rider_addr).call()
     assert stored == can_ride, f"canUserRide mismatch: {stored} != {can_ride}"
     print(f"  ✅ Usuario autorizado (can_ride={can_ride})")
@@ -183,7 +209,9 @@ def register_entities(w3: Web3, account, contracts: dict, creds: dict):
             return False  # ya existía
         except Exception:
             pass  # no existe → registrar
-        send_tx(w3, account, vpm.functions.registerVertiport(vp_id, 1, vp_cap, vp_bytes))
+        print(f"  [{step}] Solicitando atestación de vertiport a Django...")
+        vp_sig = get_vertiport_attestation(vp_id)
+        send_tx(w3, account, vpm.functions.registerVertiport(vp_id, 1, vp_cap, vp_bytes, vp_sig))
         print(f"  ✅ {vp_label} registrado ({vp_id})")
         return True  # recién registrado
 
@@ -213,7 +241,9 @@ def register_entities(w3: Web3, account, contracts: dict, creds: dict):
         print(f"  ⚠️  eVTOL id={evtol_id} ya registrado — saltando")
         vp1_new = False  # no pre-ocupar parking de nuevo
     except Exception:
-        send_tx(w3, account, evm.functions.registerEVTOL(evtol_id, evtol_vp, evtol_bytes))
+        print(f"  [2d] Solicitando atestación de eVTOL a Django...")
+        evtol_sig = get_evtol_attestation(evtol_id)
+        send_tx(w3, account, evm.functions.registerEVTOL(evtol_id, evtol_vp, evtol_bytes, evtol_sig))
         print(f"  ✅ eVTOL registrado (id={evtol_id})")
 
     # 2e. Pre-ocupar 1 parking solo si el eVTOL se registró ahora
