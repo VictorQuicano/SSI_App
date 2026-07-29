@@ -27,7 +27,7 @@ class CredentialService:
             return ids[0]
         # el schema puede tardar unos segundos en propagarse entre los nodos Indy
         time.sleep(2)
-        result = self.client.create_credential_definition(schema_id, tag='default')
+        result = self.client.create_credential_definition(schema_id, tag='v2')
         return (result.get('credential_definition_id') or
                 result.get('sent', {}).get('credential_definition_id'))
 
