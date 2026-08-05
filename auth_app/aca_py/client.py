@@ -3,12 +3,14 @@ import requests
 from django.conf import settings
 
 class ACApyClient:
-    def __init__(self, admin_url: str):
-        self.admin_url = admin_url.rstrip('/')                                
+    def __init__(self, admin_url: str, jwt: str = None):
+        self.admin_url = admin_url.rstrip('/')
         self.headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
+        if jwt:
+            self.headers['Authorization'] = f'Bearer {jwt}'
     
     # ── base ──────────────────────────────────────────────────────────────  
                   
@@ -28,13 +30,24 @@ class ACApyClient:
         r.raise_for_status()
         return r.json()
 
-    # ── DID / wallet ──────────────────────────────────────────────────────  
-                  
-    def create_did(self) -> dict:                                             
+    # ── DID / wallet ──────────────────────────────────────────────────────
+
+    def create_did(self) -> dict:
         """Crea un DID local dentro del wallet del agente."""
-        return self._make_request('POST', '/wallet/did/create', {             
+        return self._make_request('POST', '/wallet/did/create', {
             "method": "sov",
-            "options": {"key_type": "ed25519"}                                
+            "options": {"key_type": "ed25519"}
+        })
+
+    # ── multitenant ────────────────────────────────────────────────────────
+
+    def create_subwallet(self, wallet_name: str, wallet_key: str) -> dict:
+        """Crea un sub-wallet en un agente multitenant. Devuelve wallet_id y token JWT."""
+        return self._make_request('POST', '/multitenancy/wallet', {
+            "wallet_name": wallet_name,
+            "wallet_key": wallet_key,
+            "wallet_type": "askar",
+            "wallet_dispatch_type": "default",
         })
     
     # ── conexiones ────────────────────────────────────────────────────────  

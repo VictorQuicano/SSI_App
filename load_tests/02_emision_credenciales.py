@@ -1,54 +1,68 @@
 """
-Escenario 2 — Throughput de emisión de credenciales SSI
+Escenario 2 — Throughput de emisión de credenciales SSI (holder multitenant)
 
-Hallazgo de diseño:
-  ACA-Py procesa solicitudes de forma secuencial por agente. Con N usuarios
-  concurrentes intentando establecer conexiones OOB simultáneamente, ACA-Py
-  devuelve respuestas vacías para N-1 de ellas. El sistema NO admite
-  emisión paralela de credenciales desde un único agente.
+Qué mide:
+  Cuántas credenciales por segundo puede emitir el issuer cuando cada usuario
+  tiene su propio sub-wallet independiente en el agente holder multitenant.
+  El cuello de botella medido es el issuer (firma CL + escritura en Indy),
+  no el holder — cada holder opera en paralelo sin serialización.
 
-Qué mide este test:
-  Throughput SECUENCIAL — cuántas credenciales puede emitir ACA-Py por
-  minuto con 1 usuario haciendo peticiones continuas. Esto establece el
-  techo teórico del sistema actual.
+Setup (on_start):
+  Cada usuario virtual registra una cuenta nueva en Django, lo que crea
+  un sub-wallet propio en acapy-holder con su JWT. Luego hace login.
+  Este setup ocurre una sola vez por usuario virtual.
 
-Prerequisito:
-  Correr primero test_all.py para que el usuario de prueba tenga
-  una conexión ya establecida:
-    python agents/scripts/test_all.py
+Tarea repetida (@task):
+  POST /api/credentials/issue/ con el JWT del sub-wallet propio.
+  Se repite mientras el test esté activo. Mide el throughput sostenido.
 
 Cómo ejecutar:
-  locust -f load_tests/02_emision_credenciales.py --host=http://localhost:8000 \
-         --users 1 --spawn-rate 1 --run-time 120s --headless \
-         --html load_tests/resultados/emision_credenciales_1u.html
+  locust -f load_tests/02_emision_credenciales.py --host=http://localhost:8000 \\
+         --users 5 --spawn-rate 1 --run-time 180s --headless \\
+         --html load_tests/resultados/emision_5u.html
 
-  Luego con 3 usuarios para comparar degradación:
-  locust -f load_tests/02_emision_credenciales.py --host=http://localhost:8000 \
-         --users 3 --spawn-rate 1 --run-time 120s --headless \
-         --html load_tests/resultados/emision_credenciales_3u.html
+  locust -f load_tests/02_emision_credenciales.py --host=http://localhost:8000 \\
+         --users 10 --spawn-rate 1 --run-time 240s --headless \\
+         --html load_tests/resultados/emision_10u.html
 """
 
-import os
+import uuid
 from locust import HttpUser, task, constant
 
-# Usuario pre-creado con conexión establecida por test_all.py
-# Ajustar si el nombre cambia entre corridas (ver salida de test_all.py)
-TEST_USERNAME = os.getenv("LOCUST_USER", "testuser_2d51f3")
-TEST_PASSWORD = "testpass123"
+
+def unique_username() -> str:
+    return f"e2u{uuid.uuid4().hex[:10]}"
 
 
 class EmisionCredencial(HttpUser):
-    # Espera fija de 1s entre tareas — queremos medir throughput real
-    wait_time = constant(1)
+    wait_time = constant(0)  # máximo throughput — sin pausa entre emisiones
 
     def on_start(self):
-        """Login con el usuario pre-establecido."""
-        resp = self.client.post(
+        self.ready = False
+        username = unique_username()
+        password = "testpass123"
+
+        reg = self.client.post(
+            "/api/user/",
+            json={
+                "username": username,
+                "email": f"{username}@test.com",
+                "password": password,
+                "password_confirm": password,
+                "first_name": "E2",
+                "last_name": "User",
+            },
+            name="[setup] POST /api/user/",
+        )
+        if reg.status_code not in (200, 201):
+            return
+
+        login = self.client.post(
             "/api/auth/login/",
-            json={"username": TEST_USERNAME, "password": TEST_PASSWORD},
+            json={"username": username, "password": password},
             name="[setup] POST /api/auth/login/",
         )
-        self.ready = resp.status_code == 200
+        self.ready = login.status_code == 200
 
     @task
     def emitir_credencial(self):
@@ -58,7 +72,7 @@ class EmisionCredencial(HttpUser):
             "/api/credentials/issue/",
             json={
                 "nombres": "Test",
-                "apellidos": "Load",
+                "apellidos": "Emision",
                 "fecha_nacimiento": "1990-01-01",
             },
             name="POST /api/credentials/issue/",

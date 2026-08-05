@@ -68,47 +68,46 @@ def save(fig, name):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ESCENARIO 1 — Django / registro de usuarios
+# ESCENARIO 1 — Django / registro de usuarios  [PostgreSQL 16]
 # ═══════════════════════════════════════════════════════════════════════════
-U1     = [10,   25,    50,    75,    100,   150,   200]
-RPS1   = [8.0,  17.7,  31.9,  29.5,  28.2,  28.5,  25.1]
-LAT1_S = [0.206,0.334, 0.466, 1.418, 2.289, 3.860, 6.203]
-FAIL1  = [0.0,  0.0,   0.0,   1.6,   4.5,   17.1,  47.9]
-BRK1   = 62.5
+U1     = [10,    25,    50,    75,    100,   150,   200]
+RPS1   = [8.20,  19.67, 30.15, 30.82, 30.77, 34.65, 38.77]
+LAT1_S = [0.207, 0.271, 0.596, 1.244, 1.879, 2.484, 3.058]
+FAIL1  = [0.0,   0.0,   0.0,   0.0,   0.0,   25.42, 41.54]
+BRK1   = 130
 XMAX1  = 215
 
 # ── G01: Throughput ─────────────────────────────────────────────────────
 fig, ax = new_fig()
-ax.set_title("Throughput — Registro de usuarios (Django + SQLite)",
+ax.set_title("Throughput — Registro de usuarios (Django + PostgreSQL)",
              fontsize=11, fontweight="bold", loc="left", pad=10)
 ideal = [RPS1[0] * u / U1[0] for u in U1]
 ax.plot(U1, ideal, color=BLUE, lw=1, ls=(0,(5,4)), alpha=0.30, label="ideal lineal")
 ax.fill_between(U1, RPS1, alpha=0.10, color=BLUE)
 ax.plot(U1, RPS1, color=BLUE, lw=2.2, label="throughput real")
 ax.scatter(U1, RPS1, color=BLUE, s=42, zorder=5, edgecolors="white", lw=1.5)
-# anotación del pico arriba del punto (no hay nada que pueda tapar arriba)
-ax.annotate("pico 31.9 r/s", xy=(50, 31.9), xytext=(50, 38.5),
+ax.annotate("estable 30.8 r/s\n(10–100 u)", xy=(100, 30.77), xytext=(70, 38),
             fontsize=8, color=BLUE, ha="center",
             arrowprops=dict(arrowstyle="-", color=GRAY, lw=0.7))
-ax.set_xlim(0, XMAX1); ax.set_ylim(0, 42)
+ax.set_xlim(0, XMAX1); ax.set_ylim(0, 46)
 ax.set_xticks(U1)
 ax.set_xlabel("Usuarios concurrentes", fontsize=9, labelpad=6)
 ax.set_ylabel("Peticiones / segundo", fontsize=9)
-ax.legend(fontsize=8.5, framealpha=0, loc="upper right")
+ax.legend(fontsize=8.5, framealpha=0, loc="upper left")
 add_zone(ax, BRK1, XMAX1)
 save(fig, "grafico_01_throughput.png")
 
 # ── G02: Latencia ────────────────────────────────────────────────────────
 fig, ax = new_fig()
-ax.set_title("Latencia promedio — Registro de usuarios (Django + SQLite)",
+ax.set_title("Latencia p50 — Registro de usuarios (Django + PostgreSQL)",
              fontsize=11, fontweight="bold", loc="left", pad=10)
 ax.fill_between(U1, LAT1_S, alpha=0.10, color=ORANGE)
 ax.plot(U1, LAT1_S, color=ORANGE, lw=2.2)
 ax.scatter(U1, LAT1_S, color=ORANGE, s=42, zorder=5, edgecolors="white", lw=1.5)
-for xu, yu, lbl in [(150, LAT1_S[5], "3.9 s"), (200, LAT1_S[6], "6.2 s")]:
-    ax.annotate(lbl, xy=(xu, yu), xytext=(xu-28, yu+0.3),
+for xu, yu, lbl in [(150, LAT1_S[5], "2.5 s"), (200, LAT1_S[6], "3.1 s")]:
+    ax.annotate(lbl, xy=(xu, yu), xytext=(xu-28, yu+0.2),
                 fontsize=8.5, color=ORANGE, ha="left")
-ax.set_xlim(0, XMAX1); ax.set_ylim(0, 7.5)
+ax.set_xlim(0, XMAX1); ax.set_ylim(0, 3.8)
 ax.set_xticks(U1)
 ax.set_xlabel("Usuarios concurrentes", fontsize=9, labelpad=6)
 ax.set_ylabel("Tiempo de respuesta (s)", fontsize=9)
@@ -117,16 +116,16 @@ add_zone(ax, BRK1, XMAX1)
 save(fig, "grafico_02_latencia.png")
 
 # ── G03: Fallos ──────────────────────────────────────────────────────────
-COLORS1 = [GREEN, GREEN, GREEN, YELLOW, ORANGE, RED, RED]
+COLORS1 = [GREEN, GREEN, GREEN, GREEN, GREEN, RED, RED]
 fig, ax = new_fig()
-ax.set_title("Tasa de fallos — Registro de usuarios  (SQLite database is locked)",
+ax.set_title("Tasa de fallos — Registro de usuarios (PostgreSQL)",
              fontsize=11, fontweight="bold", loc="left", pad=10)
 bars = ax.bar(U1, FAIL1, width=12, color=COLORS1,
               zorder=3, edgecolor="white", lw=1.2)
 for bar, val, col in zip(bars, FAIL1, COLORS1):
     h = bar.get_height()
     if val == 0.0:
-        continue                    # barra vacía ya habla por sí sola
+        continue
     lbl = f"{val:.1f}%"
     if h > 12:
         ax.text(bar.get_x()+bar.get_width()/2, h/2,
@@ -142,37 +141,38 @@ ax.set_xlabel("Usuarios concurrentes", fontsize=9, labelpad=6)
 ax.set_ylabel("Tasa de fallos (%)", fontsize=9)
 ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0f}%"))
 legend_patches = [
-    mpatches.Patch(color=GREEN,  label="Estable (0 %)"),
-    mpatches.Patch(color=YELLOW, label="Degradado (<2 %)"),
-    mpatches.Patch(color=ORANGE, label="Critico (<10 %)"),
-    mpatches.Patch(color=RED,    label="Colapso (>=10 %)"),
+    mpatches.Patch(color=GREEN, label="Estable (0 %)"),
+    mpatches.Patch(color=RED,   label="Colapso (>=25 %)"),
 ]
-ax.legend(handles=legend_patches, fontsize=8.5, framealpha=0, loc="upper right")
+ax.legend(handles=legend_patches, fontsize=8.5, framealpha=0, loc="upper left")
 add_zone(ax, BRK1, XMAX1)
 save(fig, "grafico_03_fallos.png")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ESCENARIO 2 — ACA-Py / emisión de credenciales SSI
+# ESCENARIO 2 — ACA-Py / emisión de credenciales SSI  [PostgreSQL 16]
 # ═══════════════════════════════════════════════════════════════════════════
-U2    = [1,    3,    5,    10,   15,   25]
-RPS2  = [0.97, 2.89, 4.73, 9.17, 13.6, 24.0]
-P50_2 = [30,   32,   37,   42,   33,   24]   # ms
-P99_2 = [95,   66,   290,  960,  1400, 96]   # ms
-FAIL2 = [0.0,  0.0,  0.0,  0.0,  42.2, 96.4]
-BRK2  = 18
-XMAX2 = 28
+U2    = [1,    3,    5,    10,   15,   25,   30,   40,   50]
+RPS2  = [0.98, 2.95, 4.91, 9.74, 14.53,23.04,24.19,22.38,23.25]
+P50_2 = [40,   48,   47,   44,   47,   90,   190,  560,  470]   # ms
+P99_2 = [320,  190,  200,  310,  400,  530,  1500, 1600, 1700]  # ms
+FAIL2 = [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.07, 0.45, 1.22]
+BRK2  = 28
+XMAX2 = 55
 
 # ── G04: Throughput ──────────────────────────────────────────────────────
 fig, ax = new_fig()
-ax.set_title("Throughput — Emision de credenciales SSI (ACA-Py + SQLite)",
+ax.set_title("Throughput — Emision de credenciales SSI (ACA-Py + PostgreSQL)",
              fontsize=11, fontweight="bold", loc="left", pad=10)
 ideal2 = [RPS2[0]*u/U2[0] for u in U2]
 ax.plot(U2, ideal2, color=BLUE, lw=1, ls=(0,(5,4)), alpha=0.30, label="ideal lineal")
 ax.fill_between(U2, RPS2, alpha=0.10, color=BLUE)
 ax.plot(U2, RPS2, color=BLUE, lw=2.2, label="throughput real")
 ax.scatter(U2, RPS2, color=BLUE, s=42, zorder=5, edgecolors="white", lw=1.5)
-ax.set_xlim(0, XMAX2); ax.set_ylim(0, 30)
+ax.annotate("pico 24.2 r/s", xy=(30, 24.19), xytext=(36, 27),
+            fontsize=8, color=BLUE, ha="center",
+            arrowprops=dict(arrowstyle="-", color=GRAY, lw=0.7))
+ax.set_xlim(0, XMAX2); ax.set_ylim(0, 32)
 ax.set_xticks(U2)
 ax.set_xlabel("Usuarios concurrentes", fontsize=9, labelpad=6)
 ax.set_ylabel("Peticiones / segundo", fontsize=9)
@@ -181,13 +181,12 @@ add_zone(ax, BRK2, XMAX2, lbl_bad="zona degradada")
 save(fig, "grafico_04_emision_throughput.png")
 
 # ── G05: Latencia p50 / p99 ──────────────────────────────────────────────
-# Recortamos p99 a 1600 ms para que la linea p50 sea visible
-CAP = 1600
+CAP = 1700
 p99_s = [min(v, CAP)/1000 for v in P99_2]
 p50_s = [v/1000 for v in P50_2]
 
 fig, ax = new_fig()
-ax.set_title("Latencia p50 / p99 — Emision de credenciales SSI  (p99 recortado a 1.6 s)",
+ax.set_title("Latencia p50 / p99 — Emision de credenciales SSI (ACA-Py + PostgreSQL)",
              fontsize=11, fontweight="bold", loc="left", pad=10)
 ax.fill_between(U2, p99_s, alpha=0.08, color=ORANGE)
 ax.plot(U2, p99_s, color=ORANGE, lw=2.2, label="p99")
@@ -195,52 +194,44 @@ ax.scatter(U2, p99_s, color=ORANGE, s=42, zorder=5, edgecolors="white", lw=1.5)
 ax.fill_between(U2, p50_s, alpha=0.12, color=BLUE)
 ax.plot(U2, p50_s, color=BLUE, lw=2.2, label="p50")
 ax.scatter(U2, p50_s, color=BLUE, s=42, zorder=5, edgecolors="white", lw=1.5)
-# anotar solo los valores p99 mayores a 200 ms (encima del punto)
 for xu, vr, ys in zip(U2, P99_2, p99_s):
-    if vr >= 290:
-        asterisco = "*" if vr > CAP else ""
-        ax.text(xu, ys+0.06, f"{vr} ms{asterisco}",
+    if vr >= 400:
+        ax.text(xu, ys+0.05, f"{vr} ms",
                 ha="center", va="bottom", fontsize=7.5, color=ORANGE)
-ax.set_xlim(0, XMAX2); ax.set_ylim(0, 1.75)
+ax.set_xlim(0, XMAX2); ax.set_ylim(0, 2.0)
 ax.set_xticks(U2)
 ax.set_xlabel("Usuarios concurrentes", fontsize=9, labelpad=6)
 ax.set_ylabel("Latencia (s)", fontsize=9)
-# leyenda abajo-derecha: zona colapso está arriba-izquierda → sin conflicto
-ax.legend(fontsize=8.5, framealpha=0, loc="lower right")
+ax.legend(fontsize=8.5, framealpha=0, loc="upper left")
 add_zone(ax, BRK2, XMAX2, lbl_bad="zona degradada")
 save(fig, "grafico_05_emision_latencia.png")
 
 # ── G06: Fallos ──────────────────────────────────────────────────────────
-COLORS2 = [GREEN, GREEN, GREEN, GREEN, RED, RED]
+COLORS2 = [GREEN]*6 + [GREEN, YELLOW, YELLOW]
 fig, ax = new_fig()
-ax.set_title("Tasa de fallos — Emision de credenciales SSI",
+ax.set_title("Tasa de fallos — Emision de credenciales SSI (PostgreSQL)",
              fontsize=11, fontweight="bold", loc="left", pad=10)
-bars = ax.bar(U2, FAIL2, width=1.7, color=COLORS2,
+bars = ax.bar(U2, FAIL2, width=3.5, color=COLORS2,
               zorder=3, edgecolor="white", lw=1.2)
 for bar, val, col in zip(bars, FAIL2, COLORS2):
     h = bar.get_height()
     if val == 0.0:
         continue
-    lbl = f"{val:.1f}%"
-    if h > 15:
-        ax.text(bar.get_x()+bar.get_width()/2, h/2,
-                lbl, ha="center", va="center",
-                fontsize=9, fontweight="bold", color="white", zorder=6)
-    else:
-        ax.text(bar.get_x()+bar.get_width()/2, h+1,
-                lbl, ha="center", va="bottom",
-                fontsize=9, fontweight="bold", color=col, zorder=6)
-ax.set_xlim(0, XMAX2); ax.set_ylim(0, 112)
+    lbl = f"{val:.2f}%"
+    ax.text(bar.get_x()+bar.get_width()/2, h+0.03,
+            lbl, ha="center", va="bottom",
+            fontsize=9, fontweight="bold", color=col, zorder=6)
+ax.set_xlim(0, XMAX2); ax.set_ylim(0, 2.5)
 ax.set_xticks(U2)
 ax.set_xlabel("Usuarios concurrentes", fontsize=9, labelpad=6)
 ax.set_ylabel("Tasa de fallos (%)", fontsize=9)
-ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0f}%"))
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.1f}%"))
 legend_p2 = [
-    mpatches.Patch(color=GREEN, label="Estable (0 %)"),
-    mpatches.Patch(color=RED,   label="Colapso (>=42 %)"),
+    mpatches.Patch(color=GREEN,  label="Estable (0 %)"),
+    mpatches.Patch(color=YELLOW, label="Degradado (<2 %)"),
 ]
-ax.legend(handles=legend_p2, fontsize=8.5, framealpha=0, loc="upper right")
-add_zone(ax, BRK2, XMAX2, lbl_bad="zona de colapso")
+ax.legend(handles=legend_p2, fontsize=8.5, framealpha=0, loc="upper left")
+add_zone(ax, BRK2, XMAX2, lbl_bad="zona degradada")
 save(fig, "grafico_06_emision_fallos.png")
 
 

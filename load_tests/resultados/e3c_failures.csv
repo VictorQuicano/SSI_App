@@ -1,0 +1,4 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+ETH,createReservation,"ConnectionError(ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')))",282,2026-08-05T18:13:41Z,2026-08-05T18:19:38Z
+ETH,createReservation,Exception('tx reverted'),592,2026-08-05T18:08:52Z,2026-08-05T18:19:32Z
+ETH,startTrip,Exception('tx reverted'),18,2026-08-05T18:08:47Z,2026-08-05T18:17:12Z

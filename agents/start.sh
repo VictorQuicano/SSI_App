@@ -13,10 +13,10 @@ WAIT_TIMEOUT=60
 
 ALL_AGENTS=(
   "http://localhost:8031/status"   # issuer
-  "http://localhost:8041/status"   # user1
   "http://localhost:8051/status"   # evtol1
   "http://localhost:8061/status"   # vertiport1
   "http://localhost:8071/status"   # vertiport2
+  "http://localhost:8081/status"   # holder (multitenant)
 )
 VON_REGISTER_URL="http://localhost:9000/register"
 ISSUER_DID="Utwqp5cpEATQpGZL5WSQZJ"
@@ -183,7 +183,7 @@ run_compose
 
 # esperar que todos los agentes respondan por su Admin API
 echo "⏳ Esperando que los 5 agentes estén listos (timeout ${WAIT_TIMEOUT}s)..."
-agent_names=("issuer" "user1" "evtol1" "vertiport1" "vertiport2")
+agent_names=("issuer" "evtol1" "vertiport1" "vertiport2" "holder")
 for i in "${!ALL_AGENTS[@]}"; do
   url="${ALL_AGENTS[$i]}"
   name="${agent_names[$i]}"
@@ -195,10 +195,10 @@ done
 
 echo "🎉 ¡Los 5 agentes están listos!"
 echo "  Issuer:     http://localhost:8031"
-echo "  User1:      http://localhost:8041"
 echo "  eVTOL1:     http://localhost:8051"
 echo "  Vertiport1: http://localhost:8061"
 echo "  Vertiport2: http://localhost:8071"
+echo "  Holder:     http://localhost:8081 (multitenant)"
 echo
 echo "Para ejecutar la prueba integral, en otra terminal:"
 echo "  cd ~/Documentos/TI3/SSI_App"

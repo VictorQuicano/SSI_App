@@ -92,8 +92,12 @@ REST_FRAMEWORK = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ti3_db',
+        'USER': 'ti3',
+        'PASSWORD': 'ti3pass',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -145,4 +149,7 @@ ACA_PY_AGENTS = {
     'evtol_1':     os.getenv('EVTOL_1_ADMIN_URL',     'http://localhost:8051'),
     'vertiport_1': os.getenv('VERTIPORT_1_ADMIN_URL', 'http://localhost:8061'),
     'vertiport_2': os.getenv('VERTIPORT_2_ADMIN_URL', 'http://localhost:8071'),
+    'holder':      os.getenv('HOLDER_ADMIN_URL',      'http://localhost:8081'),
 }
+
+HOLDER_JWT_SECRET = os.getenv('HOLDER_JWT_SECRET', 'holderJwtSecret2024')

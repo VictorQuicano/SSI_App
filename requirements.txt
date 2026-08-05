@@ -25,6 +25,7 @@ did-peer-2==0.1.2
 did-peer-4==0.1.4
 did-webvh==1.0.0
 Django==5.2.7
+psycopg2-binary==2.9.10
 djangorestframework==3.16.1
 dotenv==0.9.9
 eth-hash==0.7.1

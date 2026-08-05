@@ -1,9 +1,34 @@
 services:
+
+  # ── Base de datos compartida ───────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: ti3-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ti3
+      POSTGRES_PASSWORD: ti3pass
+      POSTGRES_DB: ti3_db
+    command: postgres -c max_connections=500
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ti3 -d ti3_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  # ── Agentes ACA-Py ────────────────────────────────────────────────────────
   issuer:
     image: bcgovimages/aries-cloudagent:py3.12_1.2.0
     container_name: acapy-issuer
     restart: unless-stopped
-    network_mode: "host"   # importante en Linux: permite que el contenedor acceda a localhost:9000 donde corre tu VON Network
+    network_mode: "host"
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./genesis/genesis.txn:/home/indy/genesis.txn
     environment:
@@ -14,33 +39,25 @@ services:
       --inbound-transport http 0.0.0.0 8030
       --outbound-transport http
       --admin 0.0.0.0 8031 --admin-insecure-mode
-      --wallet-type askar --wallet-name issuer_wallet --wallet-key issuerkey123
+      --wallet-type askar
+      --wallet-name issuer_wallet
+      --wallet-key issuerkey123
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"localhost:5432","max_connections":5,"min_connections":2,"connection_timeout":10,"wallet_scheme":"MultiWalletSingleTable"}'
+      --wallet-storage-creds '{"account":"ti3","password":"ti3pass","admin_account":"ti3","admin_password":"ti3pass"}'
       --auto-provision --auto-accept-invites --auto-accept-requests
       --auto-ping-connection
       --seed issuer00000000000000000000000001
       --genesis-file /home/indy/genesis.txn
 
-  user1:
-    image: bcgovimages/aries-cloudagent:py3.12_1.2.0
-    container_name: acapy-user1                                                                                                                                                       
-    network_mode: "host"
-    volumes:                                                                                                                                                                          
-      - ./genesis/genesis.txn:/home/indy/genesis.txn
-    command: >
-      start --label "User1"
-      --endpoint http://localhost:8040                                                                                                                                                
-      --inbound-transport http 0.0.0.0 8040
-      --outbound-transport http                                                                                                                                                       
-      --admin 0.0.0.0 8041 --admin-insecure-mode
-      --wallet-type askar --wallet-name user1_wallet --wallet-key user1key123                                                                                                         
-      --auto-provision --auto-accept-invites --auto-accept-requests
-      --auto-respond-credential-offer --auto-store-credential --auto-ping-connection
-      --genesis-file /home/indy/genesis.txn
-  
+
   evtol1:
     image: bcgovimages/aries-cloudagent:py3.12_1.2.0
     container_name: acapy-evtol1
     network_mode: "host"
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./genesis/genesis.txn:/home/indy/genesis.txn
     command: >
@@ -49,7 +66,12 @@ services:
       --inbound-transport http 0.0.0.0 8050
       --outbound-transport http
       --admin 0.0.0.0 8051 --admin-insecure-mode
-      --wallet-type askar --wallet-name evtol1_wallet --wallet-key holderkey123
+      --wallet-type askar
+      --wallet-name evtol1_wallet
+      --wallet-key holderkey123
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"localhost:5432","max_connections":5,"min_connections":2,"connection_timeout":10,"wallet_scheme":"MultiWalletSingleTable"}'
+      --wallet-storage-creds '{"account":"ti3","password":"ti3pass","admin_account":"ti3","admin_password":"ti3pass"}'
       --auto-provision --auto-accept-invites --auto-accept-requests
       --auto-respond-credential-offer --auto-store-credential --auto-ping-connection
       --genesis-file /home/indy/genesis.txn
@@ -58,6 +80,9 @@ services:
     image: bcgovimages/aries-cloudagent:py3.12_1.2.0
     container_name: acapy-vertiport1
     network_mode: "host"
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./genesis/genesis.txn:/home/indy/genesis.txn
     command: >
@@ -66,7 +91,12 @@ services:
       --inbound-transport http 0.0.0.0 8060
       --outbound-transport http
       --admin 0.0.0.0 8061 --admin-insecure-mode
-      --wallet-type askar --wallet-name vertiport1_wallet --wallet-key holderkey123
+      --wallet-type askar
+      --wallet-name vertiport1_wallet
+      --wallet-key holderkey123
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"localhost:5432","max_connections":5,"min_connections":2,"connection_timeout":10,"wallet_scheme":"MultiWalletSingleTable"}'
+      --wallet-storage-creds '{"account":"ti3","password":"ti3pass","admin_account":"ti3","admin_password":"ti3pass"}'
       --auto-provision --auto-accept-invites --auto-accept-requests
       --auto-respond-credential-offer --auto-store-credential --auto-ping-connection
       --genesis-file /home/indy/genesis.txn
@@ -75,6 +105,9 @@ services:
     image: bcgovimages/aries-cloudagent:py3.12_1.2.0
     container_name: acapy-vertiport2
     network_mode: "host"
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./genesis/genesis.txn:/home/indy/genesis.txn
     command: >
@@ -83,7 +116,44 @@ services:
       --inbound-transport http 0.0.0.0 8070
       --outbound-transport http
       --admin 0.0.0.0 8071 --admin-insecure-mode
-      --wallet-type askar --wallet-name vertiport2_wallet --wallet-key holderkey123
+      --wallet-type askar
+      --wallet-name vertiport2_wallet
+      --wallet-key holderkey123
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"localhost:5432","max_connections":5,"min_connections":2,"connection_timeout":10,"wallet_scheme":"MultiWalletSingleTable"}'
+      --wallet-storage-creds '{"account":"ti3","password":"ti3pass","admin_account":"ti3","admin_password":"ti3pass"}'
       --auto-provision --auto-accept-invites --auto-accept-requests
       --auto-respond-credential-offer --auto-store-credential --auto-ping-connection
       --genesis-file /home/indy/genesis.txn
+
+  # ── Holder multitenant (un proceso, N sub-wallets) ───────────────────────
+  holder:
+    image: bcgovimages/aries-cloudagent:py3.12_1.2.0
+    container_name: acapy-holder
+    network_mode: "host"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./genesis/genesis.txn:/home/indy/genesis.txn
+    command: >
+      start --label "Holder Multitenant"
+      --endpoint http://localhost:8080
+      --inbound-transport http 0.0.0.0 8080
+      --outbound-transport http
+      --admin 0.0.0.0 8081 --admin-insecure-mode
+      --wallet-type askar
+      --wallet-name holder_base_wallet
+      --wallet-key holderbasekey123
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"localhost:5432","max_connections":200,"min_connections":10,"connection_timeout":60}'
+      --wallet-storage-creds '{"account":"ti3","password":"ti3pass","admin_account":"ti3","admin_password":"ti3pass"}'
+      --auto-provision
+      --auto-accept-invites --auto-accept-requests
+      --auto-respond-credential-offer --auto-store-credential --auto-ping-connection
+      --multitenant --multitenant-admin
+      --jwt-secret holderJwtSecret2024
+      --genesis-file /home/indy/genesis.txn
+
+volumes:
+  postgres_data:

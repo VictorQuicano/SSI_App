@@ -41,7 +41,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create_user_wallet(self, user):
         wallet_service = WalletService()
         try:
-            wallet_service.create_wallet(owner_model=user, agent_key='user_1')
+            wallet_service.create_wallet(owner_model=user, agent_key='holder')
         except Exception as e:
             logger.error(f"Error creating wallet for user {user.username}: {e}")
             raise serializers.ValidationError(

@@ -1,0 +1,60 @@
+{
+  "vp1": "e3a-6fc0c8",
+  "vp2": "e3b-6fc0c8",
+  "n_users": 10,
+  "n_parkings_per_vp": 20,
+  "vp1_initial_free": 10,
+  "vp2_initial_free": 20,
+  "accounts": [
+    {
+      "address": "0x5f8468C434e16b14c8A04D06DdCA06f5F5e31D1C",
+      "private_key": "0xd1ace168d741b0dd054ad3f47042629f689017bcb336df4c114d0c624abd4b37",
+      "evtol_id": 90
+    },
+    {
+      "address": "0x0A0101Fc81B65BA7BA87f96BeF4D32ECcb72B51a",
+      "private_key": "0x1ca37af1e7011153cf95ca30e53f4e4cce650d2f8672160764629a22fc16ced2",
+      "evtol_id": 91
+    },
+    {
+      "address": "0xEBcE0D19002e1D562aaA32415c01A57f45E74D06",
+      "private_key": "0x6d127d9a31813e5f8b0690c4ec18dd74d6c1a6662acf803ebcf9a16a56605fe4",
+      "evtol_id": 92
+    },
+    {
+      "address": "0x6696953f2C941b48250d0776Ffc59A8c8BAC39fA",
+      "private_key": "0x0e6ab8f55a3b663a519e6f63a26ddb60c942c76d4ce1254ace3e913de35f6d63",
+      "evtol_id": 93
+    },
+    {
+      "address": "0x2Cc54aB40ECA0559b83C3A838e39f9a4e700F5ee",
+      "private_key": "0xb51ebcf598eb8da448c847e422343472b39a90e936e1f097d6ac1a13c185e326",
+      "evtol_id": 94
+    },
+    {
+      "address": "0x87F3FAA2Fe1799BaE02b41804D22DBB7638Bc588",
+      "private_key": "0xe4444bd29de2401e56509f7842c625b07fb6a489f4b901a9eb440611f0bcb8a3",
+      "evtol_id": 95
+    },
+    {
+      "address": "0xa10Dc7ED82D37ba09E548D8838E4D25EdFCf5E2C",
+      "private_key": "0xe0de4ee55af9f7859d48044984c99f6babdafe5a8f69c8c0c6ed5384306c8f9f",
+      "evtol_id": 96
+    },
+    {
+      "address": "0x6Eb923c5f0C84a6006A0F1F649F72e761430c352",
+      "private_key": "0x07bf5f06ab800c2bbf131637064b530568c00778f5b7b3601f3e6cb345bcc898",
+      "evtol_id": 97
+    },
+    {
+      "address": "0x7E0080C424D2205331AF3C67bAD0Bc6492EDcE9A",
+      "private_key": "0x782b126565a591361e4d5cb93794fe45d30fd696bf43fd53383e3578ff01d8d8",
+      "evtol_id": 98
+    },
+    {
+      "address": "0xA0C7df6dF18561eD47113cEe5a7973c9Cf029364",
+      "private_key": "0xc6c9ec1f6b409f67aeee6c78e375e5ca5bdfbc0ab1395a4042e38f37519099af",
+      "evtol_id": 99
+    }
+  ]
+}

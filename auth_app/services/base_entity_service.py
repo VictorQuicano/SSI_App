@@ -51,7 +51,9 @@ class BaseEntityCredentialService:
         )
         invi_msg_id = inv_data['invi_msg_id']
 
-        holder_client = ACApyClient(holder_wallet.agent_admin_url)
+        # Para sub-wallets multitenant el JWT identifica el wallet correcto
+        holder_client = ACApyClient(holder_wallet.agent_admin_url,
+                                    jwt=holder_wallet.wallet_token)
         holder_client.receive_oob_invitation(inv_data['invitation'])
 
         issuer_conn_id = self._wait_for_connection_by_invitation(issuer_client, invi_msg_id)

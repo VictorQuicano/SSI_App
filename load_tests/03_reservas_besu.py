@@ -1,160 +1,170 @@
 """
-Escenario 3 — Throughput de reservas de vuelo en Besu
+Escenario 3 — Throughput de reservas de vuelo en Besu (eVTOLs independientes)
+
+Prerrequisito:
+  Ejecutar primero el script de setup para preparar cuentas y eVTOLs:
+    python load_tests/setup_e3_besu.py --users <N>
 
 Qué mide:
-  Latencia de confirmación de bloque (ms desde envío hasta receipt) y
-  transacciones por segundo que la red Besu puede procesar para el ciclo
-  completo createReservation → startTrip → completeTrip.
+  Throughput y latencia de transacciones Besu para el ciclo completo
+  createReservation → startTrip → completeTrip.
 
-Nota de diseño:
-  Todas las transacciones salen de la misma cuenta (dev key de Besu), por lo
-  que los nonces deben ser estrictamente secuenciales. Un lock global serializa
-  la asignación de nonce — el paralelismo real en Besu es a nivel de bloque,
-  no de submission. Los usuarios concurrentes comparten un único EVTOL, por lo
-  que solo un viaje puede estar activo a la vez (lógica del contrato).
-  Los fallos a >1 usuario reflejan esta restricción del contrato, no una
-  limitación de la red Besu.
+  Diseño del test:
+  - Las transacciones las firma la cuenta admin (dev key), igual que lo
+    haría el backend Django en producción.
+  - Cada usuario virtual tiene su propio rider address, su propio eVTOL
+    y sus propios trip_ids. No hay contención de estado de eVTOL.
+  - El nonce se serializa con un lock porque un solo account firma todo,
+    reflejo fiel de cómo Django enviaría txs en producción.
+  - El límite medido es la red Besu (QBFT, tiempo de bloque, throughput
+    de txs por bloque) sin el cuello de botella artificial de un eVTOL único.
 
-Prerequisito:
-  - Besu corriendo (localhost:8545)
-  - Contratos desplegados (deployed_addresses.json)
-  - bridge.py ejecutado (registra user, vertiports, EVTOL)
-
-Cómo ejecutar:
-  cd SSI_App
+Cómo ejecutar (N debe coincidir con el setup):
   locust -f load_tests/03_reservas_besu.py --host=http://localhost:8545 \\
-         --users 1 --spawn-rate 1 --run-time 120s --headless \\
-         --html load_tests/resultados/besu_1u.html
+         --users 5 --spawn-rate 1 --run-time 120s --headless \\
+         --html load_tests/resultados/besu_5u.html
+
+  locust -f load_tests/03_reservas_besu.py --host=http://localhost:8545 \\
+         --users 10 --spawn-rate 1 --run-time 180s --headless \\
+         --html load_tests/resultados/besu_10u.html
 """
 
-import threading
-import time
-import uuid
-from pathlib import Path
 import json
+import pathlib
+import time
+import threading
+import uuid
 
-from locust import User, task, constant, events
-
+import gevent.lock
+from locust import User, task, between, events
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
-# ── Configuración ─────────────────────────────────────────────────────────────
+# ── Cargar setup ──────────────────────────────────────────────────────────────
 
-BASE = Path("~/Documentos/TI3").expanduser()
-_addr     = json.loads((BASE / "BESU_project/smart_contracts/deployed_addresses.json").read_text())
-_fr_abi   = json.loads((BASE / "BESU_project/smart_contracts/contracts/FlightReservation.json").read_text())["abi"]
-_evtol_abi = json.loads((BASE / "BESU_project/smart_contracts/contracts/EVTOLManagement.json").read_text())["abi"]
+SETUP_FILE = pathlib.Path(__file__).parent / "resultados/e3_setup.json"
+if not SETUP_FILE.exists():
+    raise FileNotFoundError(
+        f"Archivo de setup no encontrado: {SETUP_FILE}\n"
+        "Ejecuta primero: python load_tests/setup_e3_besu.py --users <N>"
+    )
 
-KEY     = "0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63"
-RPC_URL = "http://localhost:8545"
+_setup   = json.loads(SETUP_FILE.read_text())
+VP1_ID   = _setup["vp1"]
+VP2_ID   = _setup["vp2"]
+_ACCOUNTS = _setup["accounts"]   # lista de {address, private_key, evtol_id}
 
-# Los dos vertiports registrados por bridge.py
-VP_A = "vp1-7805"
-VP_B = "vp2-7805"
+# ── Contratos ─────────────────────────────────────────────────────────────────
 
-# ── Nonce centralizado (todas las tx de una sola cuenta) ─────────────────────
+BASE     = pathlib.Path("~/Documentos/TI3").expanduser()
+_addr    = json.loads((BASE / "BESU_project/smart_contracts/deployed_addresses.json").read_text())
+_fr_abi  = json.loads((BASE / "BESU_project/smart_contracts/contracts/FlightReservation.json").read_text())["abi"]
 
-_nonce_lock  = threading.Lock()
-_nonce_value = [None]
+RPC_URL  = "http://localhost:8545"
+# La cuenta admin (dev key) es la única que puede llamar al contrato — igual
+# que el backend Django en producción.
+ADMIN_KEY = "0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63"
 
-def _next_nonce(w3, account):
-    with _nonce_lock:
-        if _nonce_value[0] is None:
-            _nonce_value[0] = w3.eth.get_transaction_count(account.address)
-        n = _nonce_value[0]
-        _nonce_value[0] += 1
-    return n
+# ── Nonce centralizado (todas las tx usan la cuenta admin) ────────────────────
+#
+# Con un único firmante (admin key), los nonces deben ser estrictamente
+# secuenciales. La estrategia correcta con gevent (coroutines concurrentes):
+#
+#   1. El lock cubre TANTO la obtención del nonce COMO el send_raw_transaction.
+#      Esto garantiza que el nonce N+1 sólo se asigne DESPUÉS de que la tx con
+#      nonce N ya está en el mempool. Si separamos las dos operaciones, una
+#      coroutine puede obtener nonce N+1 antes de que la anterior (con nonce N)
+#      llegue siquiera a send_raw_transaction, creando potenciales huecos.
+#
+#   2. El receipt-wait (wait_for_transaction_receipt) se hace FUERA del lock.
+#      Todos los usuarios esperan sus recibos en paralelo; no hay razón para
+#      serializar esa parte — el mempool ya tiene todos los txs ordenados.
+#
+#   IMPORTANTE: usar gevent.lock.Semaphore, NO threading.Lock.
+#   Locust corre en gevent (coroutines cooperativas en un solo OS thread).
+#   threading.Lock NO es gevent-aware: dos greenlets en el mismo OS thread
+#   pueden entrar al lock simultáneamente porque Python ve un único thread.
+#   gevent.lock.Semaphore SÍ es greenlet-aware: bloquea la coroutine que
+#   intenta adquirir el semáforo si ya está ocupado, cediendo al hub.
+#
+_send_lock = gevent.lock.Semaphore(1)
 
-# ── Alternancia de vertiports (el EVTOL viaja A→B, luego B→A, etc.) ─────────
-# Al arrancar, recupera cualquier EVTOL atascado (EXPECTING/IN_USE) de una
-# corrida anterior y luego detecta la ubicación para sincronizar la dirección.
+import logging as _logging
+_log = _logging.getLogger("locust.nonce")
 
-def _recover_and_detect() -> int:
-    """Completa viajes activos atascados y devuelve la dirección inicial correcta."""
+def _locked_send(w3, account, tx_fn, gas=400_000):
+    """Obtiene el nonce y envía el tx bajo el lock. Devuelve tx_hash."""
+    _send_lock.acquire()
     try:
-        _w3 = Web3(Web3.HTTPProvider(RPC_URL))
-        _w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        _account = _w3.eth.account.from_key(KEY)
+        nonce = w3.eth.get_transaction_count(account.address, "pending")
+        tx = tx_fn.build_transaction({
+            "from":     account.address,
+            "nonce":    nonce,
+            "gas":      gas,
+            "gasPrice": w3.eth.gas_price,
+        })
+        signed  = account.sign_transaction(tx)
+        try:
+            tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)
+        except Exception as e:
+            _log.warning(f"send_raw_tx FAILED nonce={nonce} confirmed={w3.eth.get_transaction_count(account.address,'latest')}: {e}")
+            raise
+    finally:
+        _send_lock.release()
+    return tx_hash
 
-        _evtol_abi = json.loads(
-            (BASE / "BESU_project/smart_contracts/contracts/EVTOLManagement.json").read_text()
-        )["abi"]
-        _evtol = _w3.eth.contract(
-            address=Web3.to_checksum_address(_addr["EVTOLManagement"]),
-            abi=_evtol_abi,
+# ── Asignación de configuración por índice de usuario ────────────────────────
+# Cada Locust user toma un rider_address y evtol_id distintos del setup.
+_slot_lock  = gevent.lock.Semaphore(1)
+_slot_index = [0]
+
+def _claim_slot():
+    with _slot_lock:
+        idx = _slot_index[0]
+        _slot_index[0] += 1
+    if idx >= len(_ACCOUNTS):
+        raise IndexError(
+            f"Solo hay {len(_ACCOUNTS)} slots en el setup pero se intentaron "
+            f"asignar {idx+1}. Vuelve a correr setup_e3_besu.py con --users mayor."
         )
-        _fr = _w3.eth.contract(
-            address=Web3.to_checksum_address(_addr["FlightReservation"]),
-            abi=_fr_abi,
-        )
+    return _ACCOUNTS[idx]
 
-        def _send_recovery(fn):
-            nonce = _w3.eth.get_transaction_count(_account.address)
-            tx = fn.build_transaction({
-                "from": _account.address, "nonce": nonce,
-                "gas": 350_000, "gasPrice": _w3.eth.gas_price,
-            })
-            signed = _account.sign_transaction(tx)
-            txh = _w3.eth.send_raw_transaction(signed.rawTransaction)
-            receipt = _w3.eth.wait_for_transaction_receipt(txh, timeout=30)
-            return receipt.status == 1
-
-        evtol_data = _evtol.functions.getEVTOL(1).call()
-        state     = evtol_data[1]   # 0=PARKED, 1=EXPECTING, 2=IN_USE
-        active_id = evtol_data[3]   # activeTripId
-        location  = evtol_data[2]   # currentVertiportId (read before if block)
-
-        if state in (1, 2) and active_id:
-            print(f"[recovery] EVTOL en estado {state} ({active_id}), reseteando via evtolManagement...")
-            if state == 1:  # EXPECTING → forzar IN_USE sin checar vertiports
-                _send_recovery(_evtol.functions.startTrip(1))
-            # Completar en la ubicación actual (no mover el EVTOL)
-            _send_recovery(_evtol.functions.completeTrip(1, location))
-            evtol_data = _evtol.functions.getEVTOL(1).call()
-            location  = evtol_data[2]  # re-leer tras recovery
-        return 0 if location == VP_A else 1  # 0=vp1→vp2 si en vp1, 1=vp2→vp1 si en vp2
-    except Exception as exc:
-        print(f"[recovery] error: {exc}")
-        return 1
-
-# Recover any stuck trips, then detect initial direction (run once at startup).
-_recover_and_detect()
 
 # ── Usuario Locust ────────────────────────────────────────────────────────────
 
 class BesuUser(User):
-    wait_time = constant(0)   # máximo throughput, sin pausa entre tareas
+    # 1-2s de pausa entre ciclos evita el spin-loop cuando un tx falla a mitad
+    # de ciclo (el task retorna None). Sin esta pausa, un usuario volvería a
+    # llamar ciclo_viaje inmediatamente con un nonce nuevo, creando un hueco
+    # en la secuencia que bloquea todos los nonces siguientes.
+    wait_time = between(1, 2)
 
     def on_start(self):
+        slot = _claim_slot()
+
         self.w3 = Web3(Web3.HTTPProvider(RPC_URL))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        self.account = self.w3.eth.account.from_key(KEY)
-        self.fr = self.w3.eth.contract(
+
+        # Admin account firma todas las txs (como lo haría Django)
+        self.admin   = self.w3.eth.account.from_key(ADMIN_KEY)
+        # Rider y eVTOL propios de este usuario virtual
+        self.rider   = Web3.to_checksum_address(slot["address"])
+        self.evtol_id = slot["evtol_id"]
+        self.fr      = self.w3.eth.contract(
             address=Web3.to_checksum_address(_addr["FlightReservation"]),
             abi=_fr_abi,
         )
-        self.evtol = self.w3.eth.contract(
-            address=Web3.to_checksum_address(_addr["EVTOLManagement"]),
-            abi=_evtol_abi,
-        )
+        self._going_to_vp2 = True
 
-    # ── helper: build, sign, send, wait ──────────────────────────────────────
+    # ── helper: firmar desde admin, esperar recibo ────────────────────────────
 
     def _send(self, fn, name: str):
         start = time.time()
         try:
-            nonce = _next_nonce(self.w3, self.account)
-            tx = fn.build_transaction({
-                "from":      self.account.address,
-                "nonce":     nonce,
-                "gas":       350_000,
-                "gasPrice":  self.w3.eth.gas_price,
-            })
-            signed  = self.account.sign_transaction(tx)
-            txh     = self.w3.eth.send_raw_transaction(signed.rawTransaction)
-            receipt = self.w3.eth.wait_for_transaction_receipt(txh, timeout=30)
+            tx_hash = _locked_send(self.w3, self.admin, fn)
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
             elapsed = int((time.time() - start) * 1000)
-            ok = receipt.status == 1
+            ok      = receipt.status == 1
             events.request.fire(
                 request_type="ETH", name=name,
                 response_time=elapsed, response_length=0,
@@ -169,35 +179,25 @@ class BesuUser(User):
             )
             return None
 
-    # ── tarea principal: ciclo completo de viaje ──────────────────────────────
+    # ── tarea: ciclo completo de viaje ────────────────────────────────────────
 
     @task
     def ciclo_viaje(self):
-        # Lee la ubicación real del EVTOL para garantizar que origin coincida
-        # con su posición actual. Esto evita que startTrip revierta por intentar
-        # liberar un parking en un vertiport que ya está lleno.
-        try:
-            evtol_data = self.evtol.functions.getEVTOL(1).call()
-        except Exception:
-            return
-        location = evtol_data[2]   # currentVertiportId
-        origin   = location
-        dest     = VP_B if location == VP_A else VP_A
+        origin  = VP1_ID if self._going_to_vp2 else VP2_ID
+        dest    = VP2_ID if self._going_to_vp2 else VP1_ID
+        trip_id = f"E3-{uuid.uuid4().hex[:8].upper()}"
 
-        trip_id   = f"LD-{uuid.uuid4().hex[:8].upper()}"
-        user_addr = self.account.address
-
-        # 1 — createReservation
         r = self._send(
             self.fr.functions.createReservation(
-                trip_id, user_addr, origin, dest, 1, b"u", b"e", b"v"
+                trip_id, self.rider,
+                origin, dest, self.evtol_id,
+                b"u", b"e", b"v",
             ),
             "createReservation",
         )
         if not r:
             return
 
-        # 2 — startTrip
         r = self._send(
             self.fr.functions.startTrip(trip_id, b"v"),
             "startTrip",
@@ -205,8 +205,9 @@ class BesuUser(User):
         if not r:
             return
 
-        # 3 — completeTrip
-        self._send(
+        r = self._send(
             self.fr.functions.completeTrip(trip_id, b"v"),
             "completeTrip",
         )
+        if r:
+            self._going_to_vp2 = not self._going_to_vp2
