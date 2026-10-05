@@ -221,6 +221,7 @@ def execute_presentation(
         "status": "error", "cryptographic_verification": None,
         "policy_authorized": None, "error": None,
         "generation_ms": None, "verification_ms": None, "presentation_bytes": None,
+        "selection_ms": None,
         "revealed_attribute_count": 0, "predicate_count": 0,
         "schema_lookup_ms": None, "cred_def_lookup_ms": None, "revocation_lookup_ms": None,
     }
@@ -239,7 +240,9 @@ def execute_presentation(
         verifier_record, _ = post(ISSUER, "/present-proof-2.0/send-request", request_payload)
         holder_record = wait_for_holder_thread(str(verifier_record["thread_id"]))
         holder_id = str(holder_record["pres_ex_id"])
+        selection_started = time.perf_counter_ns()
         candidates, _ = get(HOLDER, f"/present-proof-2.0/records/{holder_id}/credentials")
+        row["selection_ms"] = (time.perf_counter_ns() - selection_started) / 1_000_000
         candidates = candidates if isinstance(candidates, list) else []
         wanted_referent = credential.get("referent") if credential else None
         matching = [item for item in candidates if item.get("cred_info", {}).get("referent") == wanted_referent]

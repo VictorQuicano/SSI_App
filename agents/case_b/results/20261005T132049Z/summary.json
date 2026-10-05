@@ -1,0 +1,14 @@
+{
+  "B5": {
+    "count": 30,
+    "completed": 0,
+    "median_generation_ms": null,
+    "median_verification_ms": null
+  },
+  "B6": {
+    "count": 30,
+    "completed": 0,
+    "median_generation_ms": null,
+    "median_verification_ms": null
+  }
+}
