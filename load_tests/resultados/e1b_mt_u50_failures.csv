@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,POST /api/user/,HTTPError('500 Server Error: Internal Server Error for url: POST /api/user/'),26,2026-08-04T22:56:33Z,2026-08-04T22:56:33Z
+POST,POST /api/user/,"ConnectionResetError(104, 'Connection reset by peer')",10,2026-08-04T22:56:31Z,2026-08-04T22:56:31Z

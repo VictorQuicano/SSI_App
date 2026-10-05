@@ -1,0 +1,84 @@
+services:
+  tails:
+    image: ti3-case-b-tails:local
+    container_name: ti3-case-b-tails
+    entrypoint: ["tails-server"]
+    ports:
+      - "6543:6543"
+    command: ["--host", "0.0.0.0", "--port", "6543", "--storage-path", "/data"]
+    volumes:
+      - case_b_tails_data:/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ti3-case-b-postgres
+    ports:
+      - "55432:5432"
+    environment:
+      POSTGRES_USER: case_b
+      POSTGRES_PASSWORD: case_b_password
+      POSTGRES_DB: case_b_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U case_b -d case_b_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - case_b_postgres_data:/var/lib/postgresql/data
+
+  issuer:
+    image: bcgovimages/aries-cloudagent:py3.12_1.2.0
+    container_name: acapy-case-b-issuer
+    network_mode: host
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../genesis/genesis.txn:/home/indy/genesis.txn:ro
+    command: >
+      start --label "Case B Issuer"
+      --endpoint http://localhost:8130
+      --inbound-transport http 0.0.0.0 8130
+      --outbound-transport http
+      --admin 0.0.0.0 8131 --admin-insecure-mode
+      --wallet-type askar
+      --wallet-name case_b_issuer_wallet
+      --wallet-key caseBissuerKey2026
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"localhost:55432","max_connections":5,"min_connections":1,"connection_timeout":30,"wallet_scheme":"MultiWalletSingleTable"}'
+      --wallet-storage-creds '{"account":"case_b","password":"case_b_password","admin_account":"case_b","admin_password":"case_b_password"}'
+      --auto-provision --auto-accept-invites --auto-accept-requests
+      --auto-ping-connection
+      --tails-server-base-url http://localhost:6543
+      --tails-server-upload-url http://localhost:6543
+      --seed casebissuer000000000000000000000
+      --genesis-file /home/indy/genesis.txn
+
+  holder:
+    image: bcgovimages/aries-cloudagent:py3.12_1.2.0
+    container_name: acapy-case-b-holder
+    network_mode: host
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../genesis/genesis.txn:/home/indy/genesis.txn:ro
+    command: >
+      start --label "Case B Holder"
+      --endpoint http://localhost:8140
+      --inbound-transport http 0.0.0.0 8140
+      --outbound-transport http
+      --admin 0.0.0.0 8141 --admin-insecure-mode
+      --wallet-type askar
+      --wallet-name case_b_holder_wallet
+      --wallet-key caseBholderKey2026
+      --wallet-storage-type postgres_storage
+      --wallet-storage-config '{"url":"localhost:55432","max_connections":5,"min_connections":1,"connection_timeout":30,"wallet_scheme":"MultiWalletSingleTable"}'
+      --wallet-storage-creds '{"account":"case_b","password":"case_b_password","admin_account":"case_b","admin_password":"case_b_password"}'
+      --auto-provision --auto-accept-invites --auto-accept-requests
+      --auto-respond-credential-offer --auto-store-credential --auto-ping-connection
+      --genesis-file /home/indy/genesis.txn
+
+volumes:
+  case_b_postgres_data:
+  case_b_tails_data:

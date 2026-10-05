@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,[setup] POST /api/auth/login/,"ConnectionResetError(104, 'Connection reset by peer')",6,2026-08-03T16:29:48Z,2026-08-03T16:29:48Z

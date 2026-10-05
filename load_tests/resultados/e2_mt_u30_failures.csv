@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,[setup] POST /api/user/,HTTPError('500 Server Error: Internal Server Error for url: [setup] POST /api/user/'),2,2026-08-04T22:01:55Z,2026-08-04T22:01:56Z
+POST,POST /api/credentials/issue/,HTTPError('500 Server Error: Internal Server Error for url: POST /api/credentials/issue/'),119,2026-08-04T22:01:54Z,2026-08-04T22:01:58Z

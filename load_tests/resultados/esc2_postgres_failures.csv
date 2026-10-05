@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,[setup] POST /api/auth/login/,HTTPError('401 Client Error: Unauthorized for url: [setup] POST /api/auth/login/'),10,2026-08-03T16:06:18Z,2026-08-03T16:06:27Z

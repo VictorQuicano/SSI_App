@@ -1,0 +1,29 @@
+{
+  "executed_at_utc": "20261004T163850Z",
+  "runs_per_case": 1,
+  "cases": [
+    "B1",
+    "B2",
+    "B3",
+    "B5",
+    "B6"
+  ],
+  "issuer_admin": "http://localhost:8131",
+  "holder_admin": "http://localhost:8141",
+  "schema_name": "user_credential",
+  "schema_version": "2.0",
+  "schema_attributes": [
+    "nombres",
+    "apellidos",
+    "fecha_nacimiento",
+    "can_ride"
+  ],
+  "schema_id": "5rtvexuq6mGGkvikxen2qK:2:user_credential:2.0",
+  "cred_def_id": "5rtvexuq6mGGkvikxen2qK:3:CL:10:case-b",
+  "notes": [
+    "B1 y B3 revelan can_ride y mantienen ocultos los otros tres atributos.",
+    "El atributo can_ride del schema actual es texto; este experimento no afirma un predicado ZK booleano sin revelaci\u00f3n.",
+    "La credential definition actual no es revocable. B7 y B8 requieren un entorno revocable y se ejecutar\u00e1n separadamente.",
+    "B4 requiere inyectar una prueba manipulada antes de la verificaci\u00f3n; ACA-Py Admin API construye y entrega la presentaci\u00f3n de forma at\u00f3mica, por lo que se implementar\u00e1 con un verificador AnonCreds de bajo nivel separado."
+  ]
+}

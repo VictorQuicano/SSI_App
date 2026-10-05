@@ -1,0 +1,28 @@
+[
+  {
+    "case": "B7",
+    "run": 1,
+    "credential_referent": "a1c6d83d-1bf7-4624-a0c3-dc453c930091",
+    "rev_reg_id": "5rtvexuq6mGGkvikxen2qK:4:5rtvexuq6mGGkvikxen2qK:3:CL:10:case-b-revocable:CL_ACCUM:f180786a-bc14-4be2-8832-5fe4c299ed8c",
+    "cred_rev_id": "2",
+    "non_revoked_to": 1791152170,
+    "status": "rejected_by_nonrevocation_verifier",
+    "cryptographic_verification": false,
+    "generation_ms": 177.090813,
+    "verification_ms": 132.402275,
+    "presentation_bytes": 10867,
+    "error": null,
+    "holder_before_cpu": "0.00%",
+    "holder_before_memory": "96.31MiB / 22.78GiB",
+    "holder_before_memory_pct": "0.41%",
+    "verifier_before_cpu": "0.00%",
+    "verifier_before_memory": "94.57MiB / 22.78GiB",
+    "verifier_before_memory_pct": "0.41%",
+    "holder_after_cpu": "0.00%",
+    "holder_after_memory": "96.46MiB / 22.78GiB",
+    "holder_after_memory_pct": "0.41%",
+    "verifier_after_cpu": "0.00%",
+    "verifier_after_memory": "94.77MiB / 22.78GiB",
+    "verifier_after_memory_pct": "0.41%"
+  }
+]

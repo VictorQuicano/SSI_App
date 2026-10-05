@@ -1,0 +1,32 @@
+{
+  "B1": {
+    "count": 30,
+    "completed": 30,
+    "median_generation_ms": 31.5027345,
+    "median_verification_ms": 27.722077
+  },
+  "B2": {
+    "count": 30,
+    "completed": 30,
+    "median_generation_ms": 31.679016,
+    "median_verification_ms": 27.950338000000002
+  },
+  "B3": {
+    "count": 30,
+    "completed": 30,
+    "median_generation_ms": 30.464712,
+    "median_verification_ms": 27.3145585
+  },
+  "B5": {
+    "count": 30,
+    "completed": 0,
+    "median_generation_ms": null,
+    "median_verification_ms": null
+  },
+  "B6": {
+    "count": 30,
+    "completed": 0,
+    "median_generation_ms": null,
+    "median_verification_ms": null
+  }
+}

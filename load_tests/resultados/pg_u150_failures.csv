@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,POST /api/user/,HTTPError('500 Server Error: Internal Server Error for url: POST /api/user/'),391,2026-08-03T16:12:37Z,2026-08-03T16:13:05Z
